@@ -1,6 +1,7 @@
 package com.babytigerdaddy.shfirstplayground.data.repository
 
 import android.content.Context
+import com.babytigerdaddy.shfirstplayground.data.util.FuzzyMatch
 import com.babytigerdaddy.shfirstplayground.domain.model.Content
 import com.babytigerdaddy.shfirstplayground.domain.model.Genre
 import com.babytigerdaddy.shfirstplayground.domain.model.Language
@@ -64,12 +65,15 @@ class JsonContentRepository @Inject constructor(
 
     override suspend fun findContent(query: String): List<Content> {
         val all = library()
-        val q = query.trim().lowercase()
+        val q = query.trim()
         if (q.isEmpty()) return all
-        return all.filter { content ->
-            content.title.lowercase().contains(q) ||
-                content.aliases.any { it.lowercase().contains(q) }
-        }
+        // 점수 매기고 임계 이상만, 점수 내림차순
+        return all
+            .map { it to FuzzyMatch.bestRatio(q, it.title, it.aliases) }
+            .filter { it.second >= FUZZY_THRESHOLD }
+            .sortedByDescending { it.second }
+            .take(MAX_RESULTS)
+            .map { it.first }
     }
 
     override suspend fun getContent(id: String): Content? =
@@ -77,5 +81,8 @@ class JsonContentRepository @Inject constructor(
 
     companion object {
         private const val ASSET_PATH = "content_library.json"
+        // 0.5 미만은 너무 동떨어진 후보. 0.6 정도면 한 글자 오타 + 부분 매칭까지 잡힘.
+        private const val FUZZY_THRESHOLD = 0.55
+        private const val MAX_RESULTS = 10
     }
 }
