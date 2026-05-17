@@ -11,7 +11,7 @@ data class EpisodeQuestion(
     val id: String,
     /** 소속 Episode.id. */
     val episodeId: String,
-    /** 카테고리 — v1 QuestionCategory 그대로 재사용. */
+    /** 카테고리 (5종 정서·인지·회상·적용·비교). */
     val category: QuestionCategory,
     /** 부모가 그대로 던질 수 있는 완성된 질문 문장. */
     val text: String,
