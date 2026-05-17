@@ -7,6 +7,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.babytigerdaddy.shfirstplayground.ui.screen.v3.HomeV3Screen
 import com.babytigerdaddy.shfirstplayground.ui.screen.v3.OnboardingV3Screen
+import com.babytigerdaddy.shfirstplayground.ui.screen.v3.SplashScreen
+import com.babytigerdaddy.shfirstplayground.ui.screen.v3.SplashTarget
+
+object SplashRoute {
+    const val PATH = "v3/splash"
+}
 
 object OnboardingV3Route {
     const val PATH = "v3/onboarding"
@@ -18,7 +24,20 @@ object HomeV3Route {
 
 @Composable
 fun AppNavigation(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = OnboardingV3Route.PATH) {
+    NavHost(navController = navController, startDestination = SplashRoute.PATH) {
+        composable(SplashRoute.PATH) {
+            SplashScreen(
+                onResolved = { target ->
+                    val dest = when (target) {
+                        SplashTarget.Home -> HomeV3Route.PATH
+                        SplashTarget.Onboarding -> OnboardingV3Route.PATH
+                    }
+                    navController.navigate(dest) {
+                        popUpTo(SplashRoute.PATH) { inclusive = true }
+                    }
+                },
+            )
+        }
         composable(OnboardingV3Route.PATH) {
             OnboardingV3Screen(
                 onFinish = {

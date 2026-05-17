@@ -26,13 +26,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.babytigerdaddy.shfirstplayground.data.local.AppStateStore
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-/**
- * Path B v3 onboarding 2 step: (1) 가치 명시, (2) 시작 CTA.
- * v2 Onboarding 3 step에서 1 step 줄임 — Path B는 컨셉이 더 단순(routine helper)이라 가치만 강조해도 충분.
- */
+@HiltViewModel
+class OnboardingV3ViewModel @Inject constructor(
+    private val appStateStore: AppStateStore,
+) : ViewModel() {
+    fun markCompleted(onDone: () -> Unit) {
+        viewModelScope.launch {
+            appStateStore.markOnboardingCompleted()
+            onDone()
+        }
+    }
+}
+
 @Composable
-fun OnboardingV3Screen(onFinish: () -> Unit) {
+fun OnboardingV3Screen(
+    onFinish: () -> Unit,
+    viewModel: OnboardingV3ViewModel = hiltViewModel(),
+) {
     var step by remember { mutableIntStateOf(0) }
     val totalSteps = 2
 
@@ -63,7 +81,11 @@ fun OnboardingV3Screen(onFinish: () -> Unit) {
                 Spacer(modifier = Modifier.size(1.dp))
             }
             Button(onClick = {
-                if (step < totalSteps - 1) step += 1 else onFinish()
+                if (step < totalSteps - 1) {
+                    step += 1
+                } else {
+                    viewModel.markCompleted(onFinish)
+                }
             }) {
                 Text(if (step < totalSteps - 1) "다음" else "시작하기")
             }

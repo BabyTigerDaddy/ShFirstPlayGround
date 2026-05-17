@@ -2,6 +2,7 @@ package com.babytigerdaddy.shfirstplayground.ui.screen.v3
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.babytigerdaddy.shfirstplayground.data.local.AppStateStore
 import com.babytigerdaddy.shfirstplayground.domain.model.Memo
 import com.babytigerdaddy.shfirstplayground.domain.model.MicroCard
 import com.babytigerdaddy.shfirstplayground.domain.model.Routine
@@ -33,6 +34,7 @@ class HomeV3ViewModel @Inject constructor(
     private val routineRepository: RoutineRepository,
     private val microCardRepository: MicroCardRepository,
     private val memoRepository: MemoRepository,
+    private val appStateStore: AppStateStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeV3UiState())
@@ -40,6 +42,7 @@ class HomeV3ViewModel @Inject constructor(
 
     init {
         load()
+        observeCheckedSteps()
     }
 
     private fun load() {
@@ -57,6 +60,8 @@ class HomeV3ViewModel @Inject constructor(
                     challenge = memo?.challenge.orEmpty(),
                     loading = false,
                 )
+                // 카드 자동 viewed 마킹 — 사용자가 home 진입한 순간 read 카운트.
+                card?.let { appStateStore.markCardViewed(today, it.id) }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     loading = false,
@@ -66,14 +71,17 @@ class HomeV3ViewModel @Inject constructor(
         }
     }
 
-    fun toggleStep(stepId: String) {
-        _uiState.update { current ->
-            val next = if (stepId in current.checkedStepIds) {
-                current.checkedStepIds - stepId
-            } else {
-                current.checkedStepIds + stepId
+    private fun observeCheckedSteps() {
+        viewModelScope.launch {
+            appStateStore.observeCheckedStepIds(LocalDate.now()).collect { checked ->
+                _uiState.update { it.copy(checkedStepIds = checked) }
             }
-            current.copy(checkedStepIds = next)
+        }
+    }
+
+    fun toggleStep(stepId: String) {
+        viewModelScope.launch {
+            appStateStore.toggleStepChecked(_uiState.value.today, stepId)
         }
     }
 
@@ -87,7 +95,7 @@ class HomeV3ViewModel @Inject constructor(
 
     /**
      * 메모 저장 — highlight 또는 challenge 한 가지라도 비어있지 않으면 저장.
-     * 둘 다 빈 문자열이면 save 호출 X (success criteria (c) 메모 수 측정에 노이즈 방지).
+     * 둘 다 빈 문자열이면 save 호출 X (success criteria (c) 측정 노이즈 방지).
      */
     fun saveMemo() {
         val state = _uiState.value
