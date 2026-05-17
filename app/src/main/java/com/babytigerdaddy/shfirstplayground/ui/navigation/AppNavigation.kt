@@ -5,10 +5,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.babytigerdaddy.shfirstplayground.ui.screen.episode.EpisodeDetailScreen
-import com.babytigerdaddy.shfirstplayground.ui.screen.episode.EpisodeListScreen
-import com.babytigerdaddy.shfirstplayground.ui.screen.onboarding.OnboardingScreen
-import com.babytigerdaddy.shfirstplayground.ui.screen.question.QuestionV2Screen
+import com.babytigerdaddy.shfirstplayground.ui.screen.v3.HomeV3Screen
+import com.babytigerdaddy.shfirstplayground.ui.screen.v3.OnboardingV3Screen
+
+// ---- v3 routes (active) ----
+
+object OnboardingV3Route {
+    const val PATH = "v3/onboarding"
+}
+
+object HomeV3Route {
+    const val PATH = "v3/home"
+}
+
+// ---- v2 legacy routes (NavHost reference 끊김. v2 ViewModel SavedStateHandle 호환용으로 보존.
+//      다음 cycle 형 v2 일괄 cleanup에서 같이 제거 예정) ----
 
 object OnboardingRoute {
     const val PATH = "onboarding"
@@ -32,33 +43,18 @@ object QuestionV2Route {
 
 @Composable
 fun AppNavigation(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = OnboardingRoute.PATH) {
-        composable(OnboardingRoute.PATH) {
-            OnboardingScreen(
+    NavHost(navController = navController, startDestination = OnboardingV3Route.PATH) {
+        composable(OnboardingV3Route.PATH) {
+            OnboardingV3Screen(
                 onFinish = {
-                    navController.navigate(EpisodeListRoute.PATH) {
-                        popUpTo(OnboardingRoute.PATH) { inclusive = true }
+                    navController.navigate(HomeV3Route.PATH) {
+                        popUpTo(OnboardingV3Route.PATH) { inclusive = true }
                     }
                 },
             )
         }
-        composable(EpisodeListRoute.PATH) {
-            EpisodeListScreen(
-                onEpisodeClick = { episodeId ->
-                    navController.navigate(EpisodeDetailRoute.build(episodeId))
-                },
-            )
-        }
-        composable(EpisodeDetailRoute.PATH) {
-            EpisodeDetailScreen(
-                onBack = { navController.popBackStack() },
-                onStartQuestions = { episodeId ->
-                    navController.navigate(QuestionV2Route.build(episodeId))
-                },
-            )
-        }
-        composable(QuestionV2Route.PATH) {
-            QuestionV2Screen(onBack = { navController.popBackStack() })
+        composable(HomeV3Route.PATH) {
+            HomeV3Screen()
         }
     }
 }
