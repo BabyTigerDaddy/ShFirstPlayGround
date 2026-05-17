@@ -1,7 +1,9 @@
 package com.babytigerdaddy.shfirstplayground.data.local.database
 
 import androidx.room.TypeConverter
+import com.babytigerdaddy.shfirstplayground.domain.model.MilestoneKind
 import com.babytigerdaddy.shfirstplayground.domain.model.Mood
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -35,6 +37,21 @@ class Converters {
 
     @TypeConverter
     fun toMood(value: String?): Mood? = value?.let { Mood.valueOf(it) }
+
+    @TypeConverter
+    fun fromLocalDate(value: LocalDate?): String? =
+        value?.format(DateTimeFormatter.ISO_LOCAL_DATE)
+
+    @TypeConverter
+    fun toLocalDate(value: String?): LocalDate? =
+        value?.let { LocalDate.parse(it, DateTimeFormatter.ISO_LOCAL_DATE) }
+
+    @TypeConverter
+    fun fromMilestoneKind(value: MilestoneKind?): String? = value?.name
+
+    @TypeConverter
+    fun toMilestoneKind(value: String?): MilestoneKind? =
+        value?.let { MilestoneKind.valueOf(it) }
 
     companion object {
         private const val SEP = "|"
