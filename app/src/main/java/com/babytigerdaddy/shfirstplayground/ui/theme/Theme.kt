@@ -8,19 +8,19 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF4A6FA5),
-    secondary = Color(0xFFF4A261),
-    tertiary = Color(0xFF2A9D8F),
+    primary = Primary,
+    secondary = Secondary,
+    tertiary = Tertiary,
+    background = Background,
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFFA4C4F0),
-    secondary = Color(0xFFF4A261),
-    tertiary = Color(0xFF2A9D8F),
+    primary = PrimaryDark,
+    secondary = Secondary,
+    tertiary = Tertiary,
 )
 
 @Composable
@@ -40,6 +40,7 @@ fun ShFirstPlayGroundTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = AppTypography,
         content = content,
     )
 }
