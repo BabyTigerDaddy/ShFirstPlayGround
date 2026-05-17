@@ -19,6 +19,7 @@ data class QuestionUiState(
     val content: Content? = null,
     val questions: List<Question> = emptyList(),
     val loading: Boolean = true,
+    val error: String? = null,
 )
 
 @HiltViewModel
@@ -38,9 +39,26 @@ class QuestionViewModel @Inject constructor(
 
     private fun load(contentId: String) {
         viewModelScope.launch {
-            val content = contentRepository.getContent(contentId)
-            val questions = content?.let { questionGenerator.generate(it, 3) } ?: emptyList()
-            _uiState.value = QuestionUiState(content = content, questions = questions, loading = false)
+            _uiState.value = QuestionUiState(loading = true)
+            try {
+                val content = contentRepository.getContent(contentId)
+                if (content == null) {
+                    _uiState.value = QuestionUiState(loading = false, error = "콘텐츠를 찾을 수 없어요.")
+                    return@launch
+                }
+                val questions = questionGenerator.generate(content, 3)
+                _uiState.value = QuestionUiState(
+                    content = content,
+                    questions = questions,
+                    loading = false,
+                    error = if (questions.isEmpty()) "질문 생성에 실패했어요. 잠시 후 다시 시도해 주세요." else null,
+                )
+            } catch (e: Exception) {
+                _uiState.value = QuestionUiState(
+                    loading = false,
+                    error = "질문을 만들지 못했어요. 잠시 후 다시 시도해 주세요.",
+                )
+            }
         }
     }
 }

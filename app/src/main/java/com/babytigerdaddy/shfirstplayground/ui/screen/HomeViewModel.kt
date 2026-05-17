@@ -15,6 +15,7 @@ data class HomeUiState(
     val query: String = "",
     val results: List<Content> = emptyList(),
     val loading: Boolean = false,
+    val error: String? = null,
 )
 
 @HiltViewModel
@@ -36,9 +37,16 @@ class HomeViewModel @Inject constructor(
 
     private fun search(query: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(loading = true)
-            val results = contentRepository.findContent(query)
-            _uiState.value = _uiState.value.copy(results = results, loading = false)
+            _uiState.value = _uiState.value.copy(loading = true, error = null)
+            try {
+                val results = contentRepository.findContent(query)
+                _uiState.value = _uiState.value.copy(results = results, loading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    loading = false,
+                    error = "콘텐츠를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+                )
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.babytigerdaddy.shfirstplayground.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -55,21 +58,36 @@ fun QuestionScreen(
             )
         },
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(innerPadding),
         ) {
-            Text(
-                text = "시청 후 아이에게 한 번씩 물어봐 주세요",
-                style = MaterialTheme.typography.titleMedium,
-            )
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(state.questions, key = { it.id }) { question ->
-                    QuestionCard(question = question)
-                }
+            when {
+                state.loading -> LoadingState()
+                state.error != null -> ErrorState(state.error!!)
+                state.questions.isEmpty() -> ErrorState("질문이 비어있어요.")
+                else -> QuestionList(questions = state.questions)
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuestionList(questions: List<Question>) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(
+            text = "시청 후 아이에게 한 번씩 물어봐 주세요",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(questions, key = { it.id }) { question ->
+                QuestionCard(question = question)
             }
         }
     }
@@ -91,6 +109,24 @@ private fun QuestionCard(question: Question) {
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
+    }
+}
+
+@Composable
+private fun LoadingState() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ErrorState(message: String) {
+    Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error,
+        )
     }
 }
 

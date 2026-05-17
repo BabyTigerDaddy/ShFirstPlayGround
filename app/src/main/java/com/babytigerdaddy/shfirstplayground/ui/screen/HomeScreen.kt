@@ -2,6 +2,7 @@ package com.babytigerdaddy.shfirstplayground.ui.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,11 +11,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,16 +49,37 @@ fun HomeScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        Text(
-            text = if (state.query.isBlank()) "추천 콘텐츠" else "검색 결과 ${state.results.size}건",
-            style = MaterialTheme.typography.titleMedium,
-        )
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(state.results, key = { it.id }) { content ->
-                ContentCard(content = content, onClick = { onContentClick(content) })
-            }
+
+        when {
+            state.loading && state.results.isEmpty() -> LoadingState()
+            state.error != null -> ErrorState(state.error!!)
+            state.results.isEmpty() -> EmptyState(state.query)
+            else -> ResultList(
+                count = state.results.size,
+                query = state.query,
+                items = state.results,
+                onContentClick = onContentClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ResultList(
+    count: Int,
+    query: String,
+    items: List<Content>,
+    onContentClick: (Content) -> Unit,
+) {
+    Text(
+        text = if (query.isBlank()) "추천 콘텐츠" else "검색 결과 ${count}건",
+        style = MaterialTheme.typography.titleMedium,
+    )
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(items, key = { it.id }) { content ->
+            ContentCard(content = content, onClick = { onContentClick(content) })
         }
     }
 }
@@ -75,11 +99,42 @@ private fun ContentCard(
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(text = content.title, style = MaterialTheme.typography.titleLarge)
-            Text(
-                text = content.summary,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (content.summary.isNotBlank()) {
+                Text(
+                    text = content.summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun LoadingState() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun EmptyState(query: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = if (query.isBlank()) "추천할 콘텐츠를 준비 중이에요." else "'$query' 검색 결과가 없어요.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun ErrorState(message: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error,
+        )
     }
 }
