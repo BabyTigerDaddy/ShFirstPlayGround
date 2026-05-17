@@ -77,6 +77,7 @@ private fun HomeContent(
         MemoSection(
             highlight = state.highlight,
             challenge = state.challenge,
+            lastSavedAt = state.lastSavedAt,
             onHighlightChange = onHighlightChange,
             onChallengeChange = onChallengeChange,
             onSaveMemo = onSaveMemo,
@@ -143,6 +144,7 @@ private fun RoutineSection(
 private fun MemoSection(
     highlight: String,
     challenge: String,
+    lastSavedAt: java.time.LocalTime?,
     onHighlightChange: (String) -> Unit,
     onChallengeChange: (String) -> Unit,
     onSaveMemo: () -> Unit,
@@ -163,7 +165,20 @@ private fun MemoSection(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (lastSavedAt != null) {
+                Text(
+                    text = "✓ ${lastSavedAt} 저장됨",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            } else {
+                Spacer(modifier = Modifier.width(1.dp))
+            }
             TextButton(onClick = onSaveMemo) { Text("저장") }
         }
     }

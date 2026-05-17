@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 import javax.inject.Inject
 
 data class HomeV3UiState(
@@ -25,6 +26,7 @@ data class HomeV3UiState(
     val card: MicroCard? = null,
     val highlight: String = "",
     val challenge: String = "",
+    val lastSavedAt: LocalTime? = null,
     val loading: Boolean = true,
     val error: String? = null,
 )
@@ -96,6 +98,7 @@ class HomeV3ViewModel @Inject constructor(
     /**
      * 메모 저장 — highlight 또는 challenge 한 가지라도 비어있지 않으면 저장.
      * 둘 다 빈 문자열이면 save 호출 X (success criteria (c) 측정 노이즈 방지).
+     * 저장 후 lastSavedAt 갱신 — UI 'OO:OO 저장됨' 표시 trigger.
      */
     fun saveMemo() {
         val state = _uiState.value
@@ -109,6 +112,7 @@ class HomeV3ViewModel @Inject constructor(
                     challenge = state.challenge.takeIf { it.isNotBlank() },
                 ),
             )
+            _uiState.update { it.copy(lastSavedAt = LocalTime.now().withNano(0)) }
         }
     }
 }
