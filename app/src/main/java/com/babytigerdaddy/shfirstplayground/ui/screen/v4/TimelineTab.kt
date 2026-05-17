@@ -1,0 +1,40 @@
+package com.babytigerdaddy.shfirstplayground.ui.screen.v4
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+@Composable
+fun TimelineTab() {
+    Box(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(text = "📓", fontSize = 56.sp)
+            Text(
+                text = "타임라인",
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Text(
+                text = "기록한 행복한 순간들이 시간 순서대로 모여요.\n첫 기록을 남기면 여기서 다시 만날 수 있어요.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}

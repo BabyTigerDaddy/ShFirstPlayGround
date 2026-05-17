@@ -11,22 +11,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val LightColors = lightColorScheme(
-    primary = Primary,
-    secondary = Secondary,
-    tertiary = Tertiary,
-    background = Background,
+    primary = Coral,
+    onPrimary = androidx.compose.ui.graphics.Color.White,
+    primaryContainer = Warm,
+    onPrimaryContainer = SoftRose,
+    secondary = Peach,
+    onSecondary = androidx.compose.ui.graphics.Color.White,
+    secondaryContainer = Warm,
+    onSecondaryContainer = SoftRose,
+    tertiary = Pink,
+    onTertiary = androidx.compose.ui.graphics.Color.White,
+    background = Cream,
+    onBackground = SoftRose,
+    surface = androidx.compose.ui.graphics.Color.White,
+    onSurface = SoftRose,
+    surfaceVariant = Warm,
+    onSurfaceVariant = SoftRose,
 )
 
 private val DarkColors = darkColorScheme(
-    primary = PrimaryDark,
-    secondary = Secondary,
-    tertiary = Tertiary,
+    primary = DeepCoral,
+    secondary = Peach,
+    tertiary = Pink,
 )
 
 @Composable
 fun ShFirstPlayGroundTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // v4는 brand 톤 일관 위해 default off
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
@@ -41,6 +53,7 @@ fun ShFirstPlayGroundTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = AppTypography,
+        shapes = AppShapes,
         content = content,
     )
 }

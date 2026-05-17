@@ -2,16 +2,18 @@ package com.babytigerdaddy.shfirstplayground.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Brand
-val Primary = Color(0xFF4A6FA5)
-val PrimaryDark = Color(0xFFA4C4F0)
-val Secondary = Color(0xFFF4A261)
-val Tertiary = Color(0xFF2A9D8F)
-val Background = Color(0xFFFFFBF7)
+// v4 brand palette — 엄마 사용 톤. 따뜻한 coral·peach·pink + cream 배경.
+val Coral = Color(0xFFFF8B7A)
+val Peach = Color(0xFFFFB088)
+val Pink = Color(0xFFF4A6C5)
+val Cream = Color(0xFFFFF8F2)
+val Warm = Color(0xFFFFE8DD)        // coral 톤 surface
+val DeepCoral = Color(0xFFE05A4A)    // dark theme primary
+val SoftRose = Color(0xFF8C4A4A)     // text muted on cream
 
-// 메타인지 질문 카테고리 색깔 (5 카테고리)
-val CategoryEmotion = Color(0xFFFFB5C2)   // 정서 — warm pink
-val CategoryCognition = Color(0xFFA5C8F0) // 인지 — cool blue
-val CategoryRecall = Color(0xFFB8E5D0)    // 회상 — mint
-val CategoryApplication = Color(0xFFF7C97A) // 적용 — amber
-val CategoryComparison = Color(0xFFC8B5E0)  // 비교 — lavender
+// Mood 색깔 (HappyLog Mood enum 5종 매핑)
+val MoodJoyful = Color(0xFFFFD166)      // 노랑 — 즐거움
+val MoodExcited = Color(0xFFFF6B6B)     // 빨강 — 신남
+val MoodCalm = Color(0xFFB5E5D0)        // 민트 — 평온
+val MoodProud = Color(0xFFA29BFE)       // 라벤더 — 자랑
+val MoodCozy = Color(0xFFFFB088)        // 피치 — 포근
