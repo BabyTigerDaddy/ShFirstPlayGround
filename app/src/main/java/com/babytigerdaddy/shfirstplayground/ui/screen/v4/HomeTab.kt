@@ -1,5 +1,6 @@
 package com.babytigerdaddy.shfirstplayground.ui.screen.v4
 
+import android.Manifest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -27,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.babytigerdaddy.shfirstplayground.domain.model.Location
 import com.babytigerdaddy.shfirstplayground.domain.model.Mood
 import com.babytigerdaddy.shfirstplayground.ui.theme.MoodCalm
 import com.babytigerdaddy.shfirstplayground.ui.theme.MoodCozy
@@ -54,6 +57,13 @@ fun HomeTab(viewModel: HomeTabViewModel = hiltViewModel()) {
         uri?.let { viewModel.onPhotoAdded(it.toString()) }
     }
 
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+    ) { grants ->
+        val granted = grants.values.any { it }
+        if (granted) viewModel.fetchCurrentLocation() else viewModel.clearLocation()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -62,7 +72,6 @@ fun HomeTab(viewModel: HomeTabViewModel = hiltViewModel()) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Greeting()
-
         NoteField(value = state.note, onChange = viewModel::onNoteChange)
         MoodPicker(selected = state.mood, onSelect = viewModel::onMoodChange)
         PhotoSection(
@@ -73,6 +82,27 @@ fun HomeTab(viewModel: HomeTabViewModel = hiltViewModel()) {
                 )
             },
             onRemove = viewModel::onPhotoRemoved,
+        )
+        LocationSection(
+            enabled = state.locationEnabled,
+            fetching = state.locationFetching,
+            location = state.currentLocation,
+            onToggle = { wantEnabled ->
+                if (wantEnabled) {
+                    if (viewModel.hasLocationPermission()) {
+                        viewModel.fetchCurrentLocation()
+                    } else {
+                        locationPermissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                            ),
+                        )
+                    }
+                } else {
+                    viewModel.clearLocation()
+                }
+            },
         )
         Button(
             onClick = viewModel::save,
@@ -174,6 +204,44 @@ private fun PhotoSection(
                     OutlinedButton(onClick = { onRemove(uri) }) { Text("×") }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun LocationSection(
+    enabled: Boolean,
+    fetching: Boolean,
+    location: Location?,
+    onToggle: (Boolean) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "위치 함께 기록", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = "지도 탭에서 다녀온 장소로 모여요",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(checked = enabled, onCheckedChange = onToggle)
+        }
+        when {
+            fetching -> Text(
+                text = "현재 위치를 가져오는 중...",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            location != null -> Text(
+                text = "현재 위치: ${"%.4f".format(location.latitude)}, ${"%.4f".format(location.longitude)}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }
