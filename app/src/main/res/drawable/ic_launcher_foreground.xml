@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 부모 말풍선 (큰 것) -->
+    <path
+        android:fillColor="#E76F51"
+        android:pathData="M30,32 Q30,24 38,24 L72,24 Q80,24 80,32 L80,52 Q80,60 72,60 L52,60 L44,68 L44,60 L38,60 Q30,60 30,52 Z" />
+    <!-- 아이 말풍선 (작은 것, 살짝 옆) -->
+    <path
+        android:fillColor="#F4A261"
+        android:pathData="M44,68 Q44,62 50,62 L74,62 Q80,62 80,68 L80,82 Q80,88 74,88 L62,88 L56,94 L56,88 L50,88 Q44,88 44,82 Z" />
+</vector>
