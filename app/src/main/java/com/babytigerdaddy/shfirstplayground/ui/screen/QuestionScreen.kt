@@ -25,7 +25,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.babytigerdaddy.shfirstplayground.domain.model.Question
@@ -35,6 +37,7 @@ import com.babytigerdaddy.shfirstplayground.ui.theme.CategoryCognition
 import com.babytigerdaddy.shfirstplayground.ui.theme.CategoryComparison
 import com.babytigerdaddy.shfirstplayground.ui.theme.CategoryEmotion
 import com.babytigerdaddy.shfirstplayground.ui.theme.CategoryRecall
+import com.babytigerdaddy.shfirstplayground.ui.theme.Secondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,18 +118,38 @@ private fun QuestionCard(question: Question) {
 @Composable
 private fun LoadingState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            CircularProgressIndicator(color = Secondary)
+            Text(
+                text = "질문을 만들고 있어요",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
 @Composable
 private fun ErrorState(message: String) {
-    Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error,
-        )
+    Box(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(text = "🐻", fontSize = 48.sp)
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
