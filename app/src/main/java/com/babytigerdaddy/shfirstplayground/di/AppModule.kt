@@ -1,10 +1,8 @@
 package com.babytigerdaddy.shfirstplayground.di
 
 import com.babytigerdaddy.shfirstplayground.data.repository.InMemoryMemoRepository
-import com.babytigerdaddy.shfirstplayground.data.repository.JsonEpisodeRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.JsonMicroCardRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.JsonRoutineRepository
-import com.babytigerdaddy.shfirstplayground.domain.repository.EpisodeRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.MemoRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.MicroCardRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.RoutineRepository
@@ -15,10 +13,10 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt 바인딩.
+ * Hilt 바인딩 — v3 Routine / MicroCard / Memo repositories.
  *
- * - v3 (active): Routine / MicroCard / Memo repositories.
- * - v2 (legacy, 다음 cleanup commit에서 제거 예정): EpisodeRepository.
+ * InMemoryMemoRepository는 Phase 1 prototype용. 다음 cycle에 동생(sh-documents)이
+ * DataStore-backed 구현으로 교체 예정.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -35,10 +33,4 @@ abstract class AppModule {
     @Binds
     @Singleton
     abstract fun bindMemoRepository(impl: InMemoryMemoRepository): MemoRepository
-
-    // ---- v2 legacy (다음 cleanup commit에서 제거) ----
-
-    @Binds
-    @Singleton
-    abstract fun bindEpisodeRepository(impl: JsonEpisodeRepository): EpisodeRepository
 }

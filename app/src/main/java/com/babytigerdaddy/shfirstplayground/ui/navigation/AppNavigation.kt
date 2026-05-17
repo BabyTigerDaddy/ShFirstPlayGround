@@ -8,37 +8,12 @@ import androidx.navigation.compose.rememberNavController
 import com.babytigerdaddy.shfirstplayground.ui.screen.v3.HomeV3Screen
 import com.babytigerdaddy.shfirstplayground.ui.screen.v3.OnboardingV3Screen
 
-// ---- v3 routes (active) ----
-
 object OnboardingV3Route {
     const val PATH = "v3/onboarding"
 }
 
 object HomeV3Route {
     const val PATH = "v3/home"
-}
-
-// ---- v2 legacy routes (NavHost reference 끊김. v2 ViewModel SavedStateHandle 호환용으로 보존.
-//      다음 cycle 형 v2 일괄 cleanup에서 같이 제거 예정) ----
-
-object OnboardingRoute {
-    const val PATH = "onboarding"
-}
-
-object EpisodeListRoute {
-    const val PATH = "episodes"
-}
-
-object EpisodeDetailRoute {
-    const val ARG_EPISODE_ID = "episodeId"
-    const val PATH = "episode/{$ARG_EPISODE_ID}"
-    fun build(episodeId: String): String = "episode/$episodeId"
-}
-
-object QuestionV2Route {
-    const val ARG_EPISODE_ID = "episodeId"
-    const val PATH = "questions/{$ARG_EPISODE_ID}"
-    fun build(episodeId: String): String = "questions/$episodeId"
 }
 
 @Composable
