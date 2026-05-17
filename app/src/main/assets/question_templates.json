@@ -1,0 +1,124 @@
+{
+  "templates": [
+    {
+      "id": "emotion_1",
+      "category": "EMOTION",
+      "pattern": "{title}에서 가장 기분이 좋아 보였던 장면은 언제였어?",
+      "themeAffinity": ["EMOTION", "FAMILY", "FRIENDSHIP"]
+    },
+    {
+      "id": "emotion_2",
+      "category": "EMOTION",
+      "pattern": "{character}가 슬퍼/속상해 보였을 때 어떤 마음이었을까?",
+      "themeAffinity": ["EMOTION", "EVERYDAY"]
+    },
+    {
+      "id": "emotion_3",
+      "category": "EMOTION",
+      "pattern": "오늘 보면서 너도 비슷한 기분이 들었던 장면이 있었어?",
+      "themeAffinity": ["EMOTION", "EVERYDAY"]
+    },
+    {
+      "id": "emotion_4",
+      "category": "EMOTION",
+      "pattern": "{character}의 마음이 가장 잘 이해되는 부분은 어디였어?",
+      "themeAffinity": ["EMOTION", "FRIENDSHIP"]
+    },
+    {
+      "id": "cognition_1",
+      "category": "COGNITION",
+      "pattern": "{character}는 왜 그렇게 행동했을까? 다른 이유도 있었을까?",
+      "themeAffinity": ["EVERYDAY", "ADVENTURE", "FRIENDSHIP"]
+    },
+    {
+      "id": "cognition_2",
+      "category": "COGNITION",
+      "pattern": "그 일이 일어나지 않았다면 다음 장면은 어떻게 됐을까?",
+      "themeAffinity": ["ADVENTURE", "IMAGINATION"]
+    },
+    {
+      "id": "cognition_3",
+      "category": "COGNITION",
+      "pattern": "이 이야기에서 가장 중요한 순간은 어떤 부분이었을까?",
+      "themeAffinity": ["ADVENTURE", "EVERYDAY"]
+    },
+    {
+      "id": "cognition_4",
+      "category": "COGNITION",
+      "pattern": "{character}가 다른 방법을 선택했다면 어떤 일이 생겼을까?",
+      "themeAffinity": ["ADVENTURE", "IMAGINATION"]
+    },
+    {
+      "id": "recall_1",
+      "category": "RECALL",
+      "pattern": "오늘 본 {title}에서 가장 기억나는 장면 하나만 말해줄래?",
+      "themeAffinity": ["EVERYDAY", "ADVENTURE"]
+    },
+    {
+      "id": "recall_2",
+      "category": "RECALL",
+      "pattern": "처음에 어떤 일로 시작했는지 기억나?",
+      "themeAffinity": ["EVERYDAY", "ADVENTURE"]
+    },
+    {
+      "id": "recall_3",
+      "category": "RECALL",
+      "pattern": "{character} 말고 또 누가 나왔어?",
+      "themeAffinity": ["FRIENDSHIP", "FAMILY"]
+    },
+    {
+      "id": "recall_4",
+      "category": "RECALL",
+      "pattern": "이야기 끝은 어떻게 마무리됐어?",
+      "themeAffinity": ["EVERYDAY", "ADVENTURE"]
+    },
+    {
+      "id": "application_1",
+      "category": "APPLICATION",
+      "pattern": "너도 비슷한 일이 있었어? 그땐 어떻게 했어?",
+      "themeAffinity": ["EVERYDAY", "EMOTION"]
+    },
+    {
+      "id": "application_2",
+      "category": "APPLICATION",
+      "pattern": "오늘 본 거 처럼 너도 한 번 해볼 수 있을 거 같아?",
+      "themeAffinity": ["EVERYDAY", "IMAGINATION"]
+    },
+    {
+      "id": "application_3",
+      "category": "APPLICATION",
+      "pattern": "이런 상황이 너한테 생기면 어떻게 할 거야?",
+      "themeAffinity": ["EVERYDAY", "EMOTION"]
+    },
+    {
+      "id": "application_4",
+      "category": "APPLICATION",
+      "pattern": "내일 친구에게 이 이야기를 설명한다면 어떻게 말해줄 거야?",
+      "themeAffinity": ["FRIENDSHIP", "LANGUAGE"]
+    },
+    {
+      "id": "comparison_1",
+      "category": "COMPARISON",
+      "pattern": "{character}랑 너랑 닮은 점이 있어? 다른 점도 있을까?",
+      "themeAffinity": ["EMOTION", "EVERYDAY"]
+    },
+    {
+      "id": "comparison_2",
+      "category": "COMPARISON",
+      "pattern": "지난번에 봤던 다른 이야기랑 비슷한 부분이 있었어?",
+      "themeAffinity": ["EVERYDAY", "ADVENTURE"]
+    },
+    {
+      "id": "comparison_3",
+      "category": "COMPARISON",
+      "pattern": "{character}들 중에 누가 가장 마음에 들었어? 왜?",
+      "themeAffinity": ["FRIENDSHIP", "EMOTION"]
+    },
+    {
+      "id": "comparison_4",
+      "category": "COMPARISON",
+      "pattern": "다음에 다시 본다면 어떤 부분을 더 보고 싶어?",
+      "themeAffinity": ["EVERYDAY", "IMAGINATION"]
+    }
+  ]
+}
