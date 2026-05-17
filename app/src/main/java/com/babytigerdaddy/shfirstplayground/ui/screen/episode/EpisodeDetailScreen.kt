@@ -72,7 +72,10 @@ fun EpisodeDetailScreen(
 
                 state.episode != null -> DetailContent(
                     episode = state.episode!!,
-                    onStartQuestions = { onStartQuestions(viewModel.episodeId) },
+                    onStartQuestions = {
+                        viewModel.onStartQuestions()
+                        onStartQuestions(viewModel.episodeId)
+                    },
                 )
             }
         }

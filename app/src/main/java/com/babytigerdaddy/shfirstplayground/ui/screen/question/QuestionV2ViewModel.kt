@@ -3,6 +3,7 @@ package com.babytigerdaddy.shfirstplayground.ui.screen.question
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.babytigerdaddy.shfirstplayground.data.local.EpisodeStatsStore
 import com.babytigerdaddy.shfirstplayground.domain.model.Episode
 import com.babytigerdaddy.shfirstplayground.domain.model.EpisodeQuestion
 import com.babytigerdaddy.shfirstplayground.domain.repository.EpisodeRepository
@@ -20,6 +21,8 @@ data class QuestionV2UiState(
     val questions: List<EpisodeQuestion> = emptyList(),
     val expandedIds: Set<String> = emptySet(),
     val usedIds: Set<String> = emptySet(),
+    val ratingSubmitted: Int? = null,
+    val showRatingPrompt: Boolean = false,
     val loading: Boolean = true,
     val error: String? = null,
 )
@@ -27,6 +30,7 @@ data class QuestionV2UiState(
 @HiltViewModel
 class QuestionV2ViewModel @Inject constructor(
     private val episodeRepository: EpisodeRepository,
+    private val statsStore: EpisodeStatsStore,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -37,6 +41,7 @@ class QuestionV2ViewModel @Inject constructor(
 
     init {
         load()
+        observePersistedStats()
     }
 
     private fun load() {
@@ -49,7 +54,7 @@ class QuestionV2ViewModel @Inject constructor(
                     return@launch
                 }
                 val questions = episodeRepository.getQuestions(episodeId)
-                _uiState.value = QuestionV2UiState(
+                _uiState.value = _uiState.value.copy(
                     episode = episode,
                     questions = questions,
                     loading = false,
@@ -64,9 +69,21 @@ class QuestionV2ViewModel @Inject constructor(
         }
     }
 
+    private fun observePersistedStats() {
+        viewModelScope.launch {
+            statsStore.observeStats(episodeId).collect { stats ->
+                _uiState.update { current ->
+                    current.copy(
+                        usedIds = stats.questionsUsed,
+                        ratingSubmitted = stats.usefulnessRating,
+                    )
+                }
+            }
+        }
+    }
+
     /**
-     * 카드 tap — expand toggle + used 마킹 (한 번 expand되면 used로 카운트).
-     * Persistence(DataStore)는 다음 commit에서 추가.
+     * 카드 tap — expand toggle + used 마킹 (옵션 2). DataStore에도 영속.
      */
     fun onQuestionTap(questionId: String) {
         _uiState.update { current ->
@@ -75,10 +92,26 @@ class QuestionV2ViewModel @Inject constructor(
             } else {
                 current.expandedIds + questionId
             }
-            current.copy(
-                expandedIds = expanded,
-                usedIds = current.usedIds + questionId,
-            )
+            current.copy(expandedIds = expanded)
+        }
+        viewModelScope.launch {
+            statsStore.markQuestionUsed(episodeId, questionId)
+        }
+    }
+
+    /** 부모가 화면 하단 "도움 됐어요?" 버튼 tap 시 prompt 노출. */
+    fun showRatingPrompt() {
+        _uiState.update { it.copy(showRatingPrompt = true) }
+    }
+
+    fun dismissRatingPrompt() {
+        _uiState.update { it.copy(showRatingPrompt = false) }
+    }
+
+    fun submitRating(rating: Int) {
+        viewModelScope.launch {
+            statsStore.setUsefulnessRating(episodeId, rating)
+            _uiState.update { it.copy(showRatingPrompt = false) }
         }
     }
 }

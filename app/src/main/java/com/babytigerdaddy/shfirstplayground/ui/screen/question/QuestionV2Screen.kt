@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,11 +24,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,11 +48,6 @@ import com.babytigerdaddy.shfirstplayground.ui.theme.CategoryComparison
 import com.babytigerdaddy.shfirstplayground.ui.theme.CategoryEmotion
 import com.babytigerdaddy.shfirstplayground.ui.theme.CategoryRecall
 
-/**
- * Plot-aware 큐레이션 질문 카드 list.
- *
- * 카드 tap → expand context + used 마킹 (옵션 2). 5색 카테고리 차별화 v1 그대로 재사용.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionV2Screen(onBack: () -> Unit) {
@@ -70,11 +72,20 @@ fun QuestionV2Screen(onBack: () -> Unit) {
                 state.error != null -> CenterMessage {
                     Text(text = state.error!!, color = MaterialTheme.colorScheme.error)
                 }
-                else -> QuestionList(
+                else -> Content(
                     questions = state.questions,
                     expandedIds = state.expandedIds,
                     usedIds = state.usedIds,
+                    ratingSubmitted = state.ratingSubmitted,
                     onTap = viewModel::onQuestionTap,
+                    onAskRating = viewModel::showRatingPrompt,
+                )
+            }
+
+            if (state.showRatingPrompt) {
+                RatingPromptDialog(
+                    onSubmit = viewModel::submitRating,
+                    onDismiss = viewModel::dismissRatingPrompt,
                 )
             }
         }
@@ -82,11 +93,13 @@ fun QuestionV2Screen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun QuestionList(
+private fun Content(
     questions: List<EpisodeQuestion>,
     expandedIds: Set<String>,
     usedIds: Set<String>,
+    ratingSubmitted: Int?,
     onTap: (String) -> Unit,
+    onAskRating: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -97,7 +110,10 @@ private fun QuestionList(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             items(questions, key = { it.id }) { q ->
                 QuestionCard(
                     question = q,
@@ -105,6 +121,20 @@ private fun QuestionList(
                     used = q.id in usedIds,
                     onClick = { onTap(q.id) },
                 )
+            }
+        }
+        if (ratingSubmitted != null) {
+            Text(
+                text = "도움 됨 점수 ${ratingSubmitted}/5 기록됨",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            OutlinedButton(
+                onClick = onAskRating,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("이 에피, 우리에게 도움 됐어요?")
             }
         }
     }
@@ -144,6 +174,44 @@ private fun QuestionCard(
             }
         }
     }
+}
+
+@Composable
+private fun RatingPromptDialog(onSubmit: (Int) -> Unit, onDismiss: () -> Unit) {
+    var rating by remember { mutableIntStateOf(3) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("도움 점수") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("이 에피와 질문이 아이와 대화에 얼마나 도움 됐어요?")
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    (1..5).forEach { value ->
+                        val selected = value == rating
+                        OutlinedButton(
+                            onClick = { rating = value },
+                            modifier = Modifier.weight(1f),
+                            colors = if (selected) {
+                                androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                )
+                            } else {
+                                androidx.compose.material3.ButtonDefaults.outlinedButtonColors()
+                            },
+                        ) {
+                            Text(text = value.toString())
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onSubmit(rating) }) { Text("저장") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("취소") }
+        },
+    )
 }
 
 @Composable

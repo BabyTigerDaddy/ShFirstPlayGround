@@ -3,6 +3,7 @@ package com.babytigerdaddy.shfirstplayground.ui.screen.episode
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.babytigerdaddy.shfirstplayground.data.local.EpisodeStatsStore
 import com.babytigerdaddy.shfirstplayground.domain.model.Episode
 import com.babytigerdaddy.shfirstplayground.domain.repository.EpisodeRepository
 import com.babytigerdaddy.shfirstplayground.ui.navigation.EpisodeDetailRoute
@@ -22,6 +23,7 @@ data class EpisodeDetailUiState(
 @HiltViewModel
 class EpisodeDetailViewModel @Inject constructor(
     private val episodeRepository: EpisodeRepository,
+    private val statsStore: EpisodeStatsStore,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -32,6 +34,7 @@ class EpisodeDetailViewModel @Inject constructor(
 
     init {
         load()
+        viewModelScope.launch { statsStore.markAppOpened() }
     }
 
     private fun load() {
@@ -50,6 +53,16 @@ class EpisodeDetailViewModel @Inject constructor(
                     error = "에피소드를 불러오지 못했어요.",
                 )
             }
+        }
+    }
+
+    /**
+     * "시청 후 질문 받기" CTA tap 시 호출.
+     * 시청 시작 timestamp 영속 → success criteria (c) 측정 기준점.
+     */
+    fun onStartQuestions() {
+        viewModelScope.launch {
+            statsStore.markEpisodeViewed(episodeId)
         }
     }
 }
