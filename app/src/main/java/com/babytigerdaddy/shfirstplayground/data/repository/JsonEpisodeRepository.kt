@@ -13,7 +13,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * assets/episodes/*.json 사전 큐레이션 에피소드 로더.
+ * assets/episodes 폴더의 JSON 사전 큐레이션 에피소드 로더.
  *
  * v2 prototype 단계는 bluey_s01e01.json 하나만. 한 에피 통과 후 episodes/ 디렉토리에
  * 추가 큐레이션 에피 추가 — 코드 변경 없이 데이터만 늘림.
