@@ -71,6 +71,114 @@
       "category": "LANGUAGE",
       "title": "오늘 있었던 일 이야기하기",
       "body": "저녁 식사 시간에 '오늘 가장 재미있었던 일'을 서로 한 가지씩 나누기. 서술 능력 + 가족 유대 동시."
+    },
+    {
+      "id": "card_emotional_004",
+      "category": "EMOTIONAL",
+      "title": "감정 거울이 되어주기",
+      "body": "아이 표정·말투에 '많이 답답했나 보네' 같이 감정을 거울로 비춰주기. 자기 감정을 객관화하는 능력의 시작이에요."
+    },
+    {
+      "id": "card_emotional_005",
+      "category": "EMOTIONAL",
+      "title": "부모의 감정도 솔직히",
+      "body": "'엄마/아빠도 오늘 힘들었어' 같이 부모가 감정을 솔직히 표현하면 아이가 감정 다양성을 자연스럽게 배워요."
+    },
+    {
+      "id": "card_emotional_006",
+      "category": "EMOTIONAL",
+      "title": "안 좋은 감정도 OK",
+      "body": "화·슬픔·질투는 나쁜 게 아니라 자연스러운 거. '그런 마음이 들 수도 있어'라고 인정해주면 감정 억압이 줄어요."
+    },
+    {
+      "id": "card_emotional_007",
+      "category": "EMOTIONAL",
+      "title": "포옹 한 번이 100마디",
+      "body": "5살은 신체 접촉이 정서 안정의 큰 부분. 하루 한 번 길게 안아주기 — 옥시토신 분비 + 애착 강화."
+    },
+    {
+      "id": "card_cognitive_004",
+      "category": "COGNITIVE",
+      "title": "패턴 찾기 놀이",
+      "body": "옷·과일 순서로 'A-B-A-B' 패턴 만들고 아이에게 다음 차례 묻기. 수학적 사고의 기초가 자라요."
+    },
+    {
+      "id": "card_cognitive_005",
+      "category": "COGNITIVE",
+      "title": "수 세기는 일상에서",
+      "body": "계단 오르며 수 세기, 식탁 위 그릇 수 세기. 추상적 수보다 실물 세기가 5살 수 개념의 디딤돌이에요."
+    },
+    {
+      "id": "card_cognitive_006",
+      "category": "COGNITIVE",
+      "title": "기억 게임",
+      "body": "장난감 3~4개 보여주고 하나 가린 뒤 '무엇이 사라졌어?' 묻기. 단기 기억 + 주의력 동시 자라요."
+    },
+    {
+      "id": "card_cognitive_007",
+      "category": "COGNITIVE",
+      "title": "역할 바꿔보기",
+      "body": "엄마·아빠 흉내 내기 놀이는 관점 전환 능력을 키워요. 아이가 부모 역할일 때 따라주기."
+    },
+    {
+      "id": "card_physical_003",
+      "category": "PHYSICAL",
+      "title": "공 던지고 받기",
+      "body": "5살은 양손 협응이 빠르게 자라는 시기. 거리·크기 다른 공으로 매일 5분이면 충분."
+    },
+    {
+      "id": "card_physical_004",
+      "category": "PHYSICAL",
+      "title": "줄넘기 도전",
+      "body": "한 번 도약 → 두 번 → 연속으로. 점프 + 박자 + 손목 회전이 동시에 발달."
+    },
+    {
+      "id": "card_physical_005",
+      "category": "PHYSICAL",
+      "title": "야외 놀이 30분",
+      "body": "햇빛 + 자연 자극은 시력 발달·수면 리듬·기분 조절에 영향. 짧아도 매일 야외 시간."
+    },
+    {
+      "id": "card_physical_006",
+      "category": "PHYSICAL",
+      "title": "잠 충분히 (10~12시간)",
+      "body": "5살 권장 수면 10~12시간. 잠 부족은 감정 조절·인지 둘 다 직접 영향. 잠자리 시간 일관성 우선."
+    },
+    {
+      "id": "card_social_003",
+      "category": "SOCIAL",
+      "title": "친구 갈등은 학습 기회",
+      "body": "다툼이 나면 즉시 중재 X. 먼저 '어떤 일이 있었어?' 양쪽 듣고 함께 해결책 찾기. 사회 문제 해결력의 기초."
+    },
+    {
+      "id": "card_social_004",
+      "category": "SOCIAL",
+      "title": "도움 요청 연습",
+      "body": "혼자 끙끙대지 않고 '도와주세요' 말하기. 도움 요청은 약함 X 강한 사회성 — 작은 일부터 연습."
+    },
+    {
+      "id": "card_social_005",
+      "category": "SOCIAL",
+      "title": "함께 만드는 약속",
+      "body": "시청 시간·정리 시간 같은 규칙을 부모가 정해 주기보다 함께 결정. 5살도 약속을 지키는 주체로."
+    },
+    {
+      "id": "card_language_003",
+      "category": "LANGUAGE",
+      "title": "끝말잇기·말놀이",
+      "body": "이동 중·식사 시간에 짧은 말놀이. 어휘 + 음운 인식 + 부모와의 상호작용 동시."
+    },
+    {
+      "id": "card_language_004",
+      "category": "LANGUAGE",
+      "title": "이중 언어는 자연스럽게",
+      "body": "영어 영상·노래 한두 가지를 자연스럽게 깔되 부모가 한국어로 풍부히 말해주는 게 모국어 깊이의 핵심."
+    },
+    {
+      "id": "card_language_005",
+      "category": "LANGUAGE",
+      "title": "쓰기 강요는 이른 편",
+      "body": "5살은 손 근육이 글씨에 충분치 않을 수 있어요. 그림 그리기 + 색칠하기로 손 힘 먼저, 글씨는 6~7세 자연 시기."
     }
   ]
 }
