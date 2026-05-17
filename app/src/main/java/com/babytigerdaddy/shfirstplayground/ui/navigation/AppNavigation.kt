@@ -1,54 +1,24 @@
 package com.babytigerdaddy.shfirstplayground.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.babytigerdaddy.shfirstplayground.ui.screen.v3.HomeV3Screen
-import com.babytigerdaddy.shfirstplayground.ui.screen.v3.OnboardingV3Screen
-import com.babytigerdaddy.shfirstplayground.ui.screen.v3.SplashScreen
-import com.babytigerdaddy.shfirstplayground.ui.screen.v3.SplashTarget
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 
-object SplashRoute {
-    const val PATH = "v3/splash"
-}
-
-object OnboardingV3Route {
-    const val PATH = "v3/onboarding"
-}
-
-object HomeV3Route {
-    const val PATH = "v3/home"
-}
-
+/**
+ * v4 placeholder root. 다음 commit에서 동생(sh-documents)이 BottomNavigationBar + 4 탭 화면으로 교체.
+ *
+ * 4 탭 예정: 홈 / 타임라인 / 지도 / 성장.
+ */
 @Composable
-fun AppNavigation(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = SplashRoute.PATH) {
-        composable(SplashRoute.PATH) {
-            SplashScreen(
-                onResolved = { target ->
-                    val dest = when (target) {
-                        SplashTarget.Home -> HomeV3Route.PATH
-                        SplashTarget.Onboarding -> OnboardingV3Route.PATH
-                    }
-                    navController.navigate(dest) {
-                        popUpTo(SplashRoute.PATH) { inclusive = true }
-                    }
-                },
-            )
-        }
-        composable(OnboardingV3Route.PATH) {
-            OnboardingV3Screen(
-                onFinish = {
-                    navController.navigate(HomeV3Route.PATH) {
-                        popUpTo(OnboardingV3Route.PATH) { inclusive = true }
-                    }
-                },
-            )
-        }
-        composable(HomeV3Route.PATH) {
-            HomeV3Screen()
-        }
+fun AppNavigation() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = "v4 준비 중\n곧 행복한 로그를 시작할 수 있어요",
+            style = MaterialTheme.typography.titleMedium,
+        )
     }
 }
