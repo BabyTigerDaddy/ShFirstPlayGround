@@ -1,7 +1,7 @@
 package com.babytigerdaddy.shfirstplayground.di
 
 import com.babytigerdaddy.shfirstplayground.data.repository.InMemoryGrowthMilestoneRepository
-import com.babytigerdaddy.shfirstplayground.data.repository.InMemoryHappyLogRepository
+import com.babytigerdaddy.shfirstplayground.data.repository.RoomHappyLogRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.GrowthMilestoneRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HappyLogRepository
 import dagger.Binds
@@ -11,9 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt 바인딩 — v4 HappyLog / GrowthMilestone repositories.
- *
- * InMemory* 구현은 phase 1 prototype용. 다음 commit에서 Room-backed로 교체 예정.
+ * Hilt 바인딩 — v4 HappyLog (Room-backed) / GrowthMilestone (InMemory, 다음 cycle Room 교체).
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -21,7 +19,7 @@ abstract class AppModule {
 
     @Binds
     @Singleton
-    abstract fun bindHappyLogRepository(impl: InMemoryHappyLogRepository): HappyLogRepository
+    abstract fun bindHappyLogRepository(impl: RoomHappyLogRepository): HappyLogRepository
 
     @Binds
     @Singleton
