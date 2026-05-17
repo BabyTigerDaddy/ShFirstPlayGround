@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.coil.compose)
+    implementation(libs.play.services.location)
 
     debugImplementation(libs.androidx.ui.tooling)
 }
