@@ -18,6 +18,8 @@ data class TradeJournalEntry(
     val note: String = "",
     /** 그날 매매 심리 라벨. */
     val mood: TradeMood = TradeMood.FLAT,
+    /** 그날 매매한 종목들 — 통계(종목별 손익·빈도)의 재료. 비어있을 수 있음. */
+    val tickers: List<String> = emptyList(),
     /** 최초 기록 시점. */
     val createdAt: LocalDateTime,
     /** 마지막 수정 시점 — 같은 날 카드 덮어쓸 때 갱신. */

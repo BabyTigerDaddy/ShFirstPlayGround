@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.babytigerdaddy.shfirstplayground.data.local.database.AppDatabase
 import com.babytigerdaddy.shfirstplayground.data.local.database.GrowthMilestoneDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.HappyLogDao
+import com.babytigerdaddy.shfirstplayground.data.local.database.MonthlyGoalDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.TradeJournalDao
 import dagger.Module
 import dagger.Provides
@@ -37,6 +38,10 @@ object DatabaseModule {
     @Provides
     fun provideTradeJournalDao(database: AppDatabase): TradeJournalDao =
         database.tradeJournalDao()
+
+    @Provides
+    fun provideMonthlyGoalDao(database: AppDatabase): MonthlyGoalDao =
+        database.monthlyGoalDao()
 
     private const val DB_NAME = "shfirstplayground.db"
 }

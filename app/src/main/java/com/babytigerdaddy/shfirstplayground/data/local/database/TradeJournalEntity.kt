@@ -16,6 +16,7 @@ data class TradeJournalEntity(
     val realizedPnl: Long,
     val note: String,
     val mood: TradeMood,
+    val tickers: List<String>,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 ) {
@@ -24,6 +25,7 @@ data class TradeJournalEntity(
         realizedPnl = realizedPnl,
         note = note,
         mood = mood,
+        tickers = tickers,
         createdAt = createdAt,
         updatedAt = updatedAt,
     )
@@ -34,6 +36,7 @@ data class TradeJournalEntity(
             realizedPnl = entry.realizedPnl,
             note = entry.note,
             mood = entry.mood,
+            tickers = entry.tickers,
             createdAt = entry.createdAt,
             updatedAt = entry.updatedAt,
         )
