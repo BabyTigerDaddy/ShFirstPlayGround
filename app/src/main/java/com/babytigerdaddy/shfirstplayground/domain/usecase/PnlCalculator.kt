@@ -27,7 +27,12 @@ object PnlCalculator {
         var running = 0L
         val daily = sorted.map { e ->
             running += e.realizedPnl
-            DailyPnlPoint(date = e.date, realizedPnl = e.realizedPnl, cumulative = running)
+            DailyPnlPoint(
+                date = e.date,
+                realizedPnl = e.realizedPnl,
+                cumulative = running,
+                note = e.note,
+            )
         }
 
         val totalRealized = running

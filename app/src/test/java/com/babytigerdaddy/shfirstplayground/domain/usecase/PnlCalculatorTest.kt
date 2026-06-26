@@ -16,11 +16,12 @@ import java.time.LocalDateTime
  */
 class PnlCalculatorTest {
 
-    private fun entry(date: String, pnl: Long): TradeJournalEntry {
+    private fun entry(date: String, pnl: Long, note: String = ""): TradeJournalEntry {
         val d = LocalDate.parse(date)
         return TradeJournalEntry(
             date = d,
             realizedPnl = pnl,
+            note = note,
             mood = TradeMood.FLAT,
             createdAt = LocalDateTime.of(d, java.time.LocalTime.NOON),
             updatedAt = LocalDateTime.of(d, java.time.LocalTime.NOON),
@@ -70,17 +71,19 @@ class PnlCalculatorTest {
     }
 
     @Test
-    fun `best와 worst는 이익날 최대 손실날 최소를 집어냄`() {
+    fun `best와 worst는 이익날 최대 손실날 최소를 집어내고 그날 메모를 함께 담음`() {
         val summary = PnlCalculator.compute(
             listOf(
                 entry("2026-06-01", 10_000),
-                entry("2026-06-02", 70_000),
-                entry("2026-06-03", -40_000),
+                entry("2026-06-02", 70_000, note = "삼성전자 단타 대박"),
+                entry("2026-06-03", -40_000, note = "손절 늦음"),
             ),
         )
 
         assertEquals(70_000L, summary.bestDay?.realizedPnl)
+        assertEquals("삼성전자 단타 대박", summary.bestDay?.note)
         assertEquals(-40_000L, summary.worstDay?.realizedPnl)
+        assertEquals("손절 늦음", summary.worstDay?.note)
     }
 
     @Test

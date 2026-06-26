@@ -47,12 +47,14 @@ data class PnlSummary(
     }
 }
 
-/** 하루 점 하나 — 그날 실현손익 + 그날까지의 누적. */
+/** 하루 점 하나 — 그날 실현손익 + 그날까지의 누적 + 그날 한 줄 메모. */
 data class DailyPnlPoint(
     val date: LocalDate,
     val realizedPnl: Long,
     /** 첫날부터 이 날까지 누적 실현손익. */
     val cumulative: Long,
+    /** 그날 한 줄 일기 — best/worst 카드나 점 tooltip에 같이 띄움. */
+    val note: String = "",
 )
 
 /** 한 달 합계 — yearMonth는 "YYYY-MM". */
