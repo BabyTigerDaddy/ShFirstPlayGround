@@ -20,14 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 
 /**
- * v5 매매일지 루트 — 입력 / 추이 2탭.
+ * v6 매매일지 루트 — 오늘 / 현황 / 달력 / 통계 / 회고 5탭.
  *
- * 입력·추이 둘 다 hiltViewModel()로 같은 [TradeViewModel](Activity 스코프)을 공유하므로
- * 입력에서 저장하면 추이가 자동 갱신.
+ * 모든 탭이 hiltViewModel()로 같은 [TradeViewModel](Activity 스코프)을 공유하므로
+ * 입력에서 저장하면 나머지 탭이 자동 갱신.
  */
 @Composable
 fun TradeMainScreen() {
-    var selected by rememberSaveable { mutableStateOf(TradeTab.INPUT) }
+    var selected by rememberSaveable { mutableStateOf(TradeTab.TODAY) }
 
     Scaffold(
         containerColor = TradeBg,
@@ -37,8 +37,8 @@ fun TradeMainScreen() {
                     NavigationBarItem(
                         selected = tab == selected,
                         onClick = { selected = tab },
-                        icon = { Text(text = tab.emoji, fontSize = 20.sp) },
-                        label = { Text(text = tab.label) },
+                        icon = { Text(text = tab.emoji, fontSize = 18.sp) },
+                        label = { Text(text = tab.label, fontSize = 10.sp) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = TradeInk,
                             selectedTextColor = TradeInk,
@@ -58,14 +58,20 @@ fun TradeMainScreen() {
             modifier = Modifier.fillMaxSize().padding(innerPadding),
         ) { tab ->
             when (tab) {
-                TradeTab.INPUT -> InputScreen()
-                TradeTab.TREND -> TrendScreen()
+                TradeTab.TODAY -> InputScreen()
+                TradeTab.DASHBOARD -> TrendScreen()
+                TradeTab.CALENDAR -> CalendarScreen()
+                TradeTab.STATS -> StatsScreen()
+                TradeTab.RETRO -> RetroScreen()
             }
         }
     }
 }
 
 private enum class TradeTab(val label: String, val emoji: String) {
-    INPUT("입력", "✏️"),
-    TREND("추이", "📈"),
+    TODAY("오늘", "✏️"),
+    DASHBOARD("현황", "📈"),
+    CALENDAR("달력", "📅"),
+    STATS("통계", "📊"),
+    RETRO("회고", "📝"),
 }

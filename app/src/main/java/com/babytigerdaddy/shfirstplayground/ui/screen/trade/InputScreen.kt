@@ -14,9 +14,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,7 +27,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -38,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -46,7 +52,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeMood
 
-/** 입력 화면 — 앱 열면 바로 손익 적는 곳. "금액 하나 + 익절/손절 + 기분" 가볍게, 저장은 3초. */
+/** 입력 화면 — 앱 열면 바로 손익 적는 곳. "금액 하나 + 익절/손절 + 기분 + 종목" 가볍게. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun InputScreen(viewModel: TradeViewModel = hiltViewModel()) {
     val state by viewModel.input.collectAsStateWithLifecycle()
@@ -129,6 +136,35 @@ fun InputScreen(viewModel: TradeViewModel = hiltViewModel()) {
                             selectedLeadingIconColor = tint,
                         ),
                     )
+                }
+            }
+        }
+
+        // 종목 (선택) — 쌓이면 통계 종목 순위 재료
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(text = "종목 (선택)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TradeInk)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = state.tickerInput,
+                    onValueChange = viewModel::onTickerInputChange,
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    placeholder = { Text(text = "예: 삼성전자", color = TradeMuted) },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { viewModel.onAddTicker() }),
+                )
+                OutlinedButton(onClick = { viewModel.onAddTicker() }) { Text(text = "추가") }
+            }
+            if (state.tickers.isNotEmpty()) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    state.tickers.forEach { ticker ->
+                        InputChip(
+                            selected = false,
+                            onClick = { viewModel.onRemoveTicker(ticker) },
+                            label = { Text(text = ticker, fontSize = 12.sp) },
+                            trailingIcon = { Text(text = "  ×", fontSize = 14.sp, color = TradeMuted) },
+                        )
+                    }
                 }
             }
         }

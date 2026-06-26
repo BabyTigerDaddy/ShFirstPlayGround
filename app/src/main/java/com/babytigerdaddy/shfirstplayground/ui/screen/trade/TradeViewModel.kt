@@ -63,6 +63,10 @@ class TradeViewModel @Inject constructor(
         .map(StatsCalculator::compute)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TradeStats.EMPTY)
 
+    /** 전체 일지(날짜 오름차순) — 회고 탭의 메모 타임라인·기분별 분석 화면 재료. */
+    val entries: StateFlow<List<TradeJournalEntry>> = repository.observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     /** 이번 달 목표 달성률 — 목표 또는 일지 변할 때 갱신. */
     val goalProgress: StateFlow<GoalProgress> =
         combine(goalRepository.observeAll(), repository.observeAll()) { goals, entries ->
