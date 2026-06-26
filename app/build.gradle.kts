@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.coil.compose)
     implementation(libs.play.services.location)
+    implementation(libs.compose.charts)
 
     testImplementation(libs.junit)
 
