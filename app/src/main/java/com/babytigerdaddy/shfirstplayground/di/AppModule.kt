@@ -2,8 +2,10 @@ package com.babytigerdaddy.shfirstplayground.di
 
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomGrowthMilestoneRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomHappyLogRepository
+import com.babytigerdaddy.shfirstplayground.data.repository.RoomTradeJournalRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.GrowthMilestoneRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HappyLogRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.TradeJournalRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -26,4 +28,10 @@ abstract class AppModule {
     abstract fun bindGrowthMilestoneRepository(
         impl: RoomGrowthMilestoneRepository,
     ): GrowthMilestoneRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTradeJournalRepository(
+        impl: RoomTradeJournalRepository,
+    ): TradeJournalRepository
 }

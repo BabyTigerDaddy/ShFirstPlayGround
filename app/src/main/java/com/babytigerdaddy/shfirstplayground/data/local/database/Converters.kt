@@ -3,6 +3,7 @@ package com.babytigerdaddy.shfirstplayground.data.local.database
 import androidx.room.TypeConverter
 import com.babytigerdaddy.shfirstplayground.domain.model.MilestoneKind
 import com.babytigerdaddy.shfirstplayground.domain.model.Mood
+import com.babytigerdaddy.shfirstplayground.domain.model.TradeMood
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -52,6 +53,12 @@ class Converters {
     @TypeConverter
     fun toMilestoneKind(value: String?): MilestoneKind? =
         value?.let { MilestoneKind.valueOf(it) }
+
+    @TypeConverter
+    fun fromTradeMood(value: TradeMood?): String? = value?.name
+
+    @TypeConverter
+    fun toTradeMood(value: String?): TradeMood? = value?.let { TradeMood.valueOf(it) }
 
     companion object {
         private const val SEP = "|"

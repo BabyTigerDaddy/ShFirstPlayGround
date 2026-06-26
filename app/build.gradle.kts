@@ -81,5 +81,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.play.services.location)
 
+    testImplementation(libs.junit)
+
     debugImplementation(libs.androidx.ui.tooling)
 }
