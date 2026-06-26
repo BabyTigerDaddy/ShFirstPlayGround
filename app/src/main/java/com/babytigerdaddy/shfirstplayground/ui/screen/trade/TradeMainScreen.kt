@@ -6,9 +6,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,14 +30,22 @@ fun TradeMainScreen() {
     var selected by rememberSaveable { mutableStateOf(TradeTab.INPUT) }
 
     Scaffold(
+        containerColor = TradeBg,
         bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+            NavigationBar(containerColor = TradeCard) {
                 TradeTab.entries.forEach { tab ->
                     NavigationBarItem(
                         selected = tab == selected,
                         onClick = { selected = tab },
                         icon = { Text(text = tab.emoji, fontSize = 20.sp) },
                         label = { Text(text = tab.label) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = TradeInk,
+                            selectedTextColor = TradeInk,
+                            indicatorColor = TradeBg,
+                            unselectedIconColor = TradeMuted,
+                            unselectedTextColor = TradeMuted,
+                        ),
                     )
                 }
             }

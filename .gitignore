@@ -14,3 +14,8 @@ local.properties
 *.jks
 **/build/
 .kotlin/
+
+# build logs / sdk path
+workspace_*.log
+workspace_emu.log
+local.properties
