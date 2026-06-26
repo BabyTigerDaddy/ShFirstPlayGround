@@ -1,5 +1,6 @@
 package com.babytigerdaddy.shfirstplayground.domain.usecase
 
+import com.babytigerdaddy.shfirstplayground.domain.model.MoodStat
 import com.babytigerdaddy.shfirstplayground.domain.model.TickerStat
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeJournalEntry
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeStats
@@ -22,8 +23,23 @@ object StatsCalculator {
             avgDailyPnl = sorted.sumOf { it.realizedPnl } / sorted.size,
             maxLossStreak = maxLossStreak(sorted),
             maxDrawdown = maxDrawdown(sorted),
+            mood = moodStats(sorted),
         )
     }
+
+    /** 기분별 평균·합 손익. 기록 있는 기분만, 평균 손익 오름차순(가장 손해 본 기분이 위). */
+    private fun moodStats(entries: List<TradeJournalEntry>): List<MoodStat> =
+        entries.groupBy { it.mood }
+            .map { (mood, list) ->
+                val total = list.sumOf { it.realizedPnl }
+                MoodStat(
+                    mood = mood,
+                    days = list.size,
+                    avgPnl = total / list.size,
+                    totalPnl = total,
+                )
+            }
+            .sortedBy { it.avgPnl }
 
     /** 월~일 고정 7개. 매매 없는 요일도 0으로 포함. */
     private fun weekdayStats(entries: List<TradeJournalEntry>): List<WeekdayStat> {

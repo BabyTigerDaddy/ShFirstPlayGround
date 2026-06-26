@@ -13,12 +13,17 @@ import java.time.LocalTime
 
 class StatsCalculatorTest {
 
-    private fun entry(date: String, pnl: Long, tickers: List<String> = emptyList()): TradeJournalEntry {
+    private fun entry(
+        date: String,
+        pnl: Long,
+        tickers: List<String> = emptyList(),
+        mood: TradeMood = TradeMood.FLAT,
+    ): TradeJournalEntry {
         val d = LocalDate.parse(date)
         return TradeJournalEntry(
             date = d,
             realizedPnl = pnl,
-            mood = TradeMood.FLAT,
+            mood = mood,
             tickers = tickers,
             createdAt = LocalDateTime.of(d, LocalTime.NOON),
             updatedAt = LocalDateTime.of(d, LocalTime.NOON),
@@ -94,6 +99,24 @@ class StatsCalculatorTest {
             ),
         )
         assertEquals(3, stats.maxLossStreak)
+    }
+
+    @Test
+    fun `기분별 손익은 평균 손해 큰 기분이 위로`() {
+        val stats = StatsCalculator.compute(
+            listOf(
+                entry("2026-06-01", -80_000, mood = TradeMood.OVERTRADED),
+                entry("2026-06-02", -40_000, mood = TradeMood.OVERTRADED),
+                entry("2026-06-03", 50_000, mood = TradeMood.DISCIPLINED),
+            ),
+        )
+        // OVERTRADED 평균 -60,000 / DISCIPLINED 평균 +50,000 → 손해 큰 OVERTRADED가 첫 번째
+        assertEquals(TradeMood.OVERTRADED, stats.mood[0].mood)
+        assertEquals(-60_000L, stats.mood[0].avgPnl)
+        assertEquals(2, stats.mood[0].days)
+        assertEquals(-120_000L, stats.mood[0].totalPnl)
+        assertEquals(TradeMood.DISCIPLINED, stats.mood[1].mood)
+        assertEquals(50_000L, stats.mood[1].avgPnl)
     }
 
     @Test

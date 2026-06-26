@@ -19,6 +19,8 @@ data class TradeStats(
     val maxLossStreak: Int,
     /** 최대 낙폭(원) — 누적 곡선 고점 대비 최대 하락폭. 항상 0 이상. */
     val maxDrawdown: Long,
+    /** 기분별 손익 — 회고 탭 "기분이 손익에 미친 영향"용(예: 과매매 찍은 날 평균 -8만). */
+    val mood: List<MoodStat>,
 ) {
     companion object {
         val EMPTY = TradeStats(
@@ -27,9 +29,21 @@ data class TradeStats(
             avgDailyPnl = 0,
             maxLossStreak = 0,
             maxDrawdown = 0,
+            mood = emptyList(),
         )
     }
 }
+
+/** 기분 라벨 하나의 집계 — 그 기분으로 기록한 날의 손익 경향. */
+data class MoodStat(
+    val mood: TradeMood,
+    /** 그 기분으로 찍은 날 수. */
+    val days: Int,
+    /** 그 날들의 평균 실현손익(원). */
+    val avgPnl: Long,
+    /** 그 날들의 손익 합(원). */
+    val totalPnl: Long,
+)
 
 /** 요일 하나의 승률. */
 data class WeekdayStat(
