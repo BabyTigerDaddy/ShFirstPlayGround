@@ -4,11 +4,13 @@ import com.babytigerdaddy.shfirstplayground.data.repository.RoomGrowthMilestoneR
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomHappyLogRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomHoldingRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomMonthlyGoalRepository
+import com.babytigerdaddy.shfirstplayground.data.repository.RoomSoldRecordRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomTradeJournalRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.GrowthMilestoneRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HappyLogRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.MonthlyGoalRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.SoldRecordRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.TradeJournalRepository
 import dagger.Binds
 import dagger.Module
@@ -50,4 +52,10 @@ abstract class AppModule {
     abstract fun bindHoldingRepository(
         impl: RoomHoldingRepository,
     ): HoldingRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSoldRecordRepository(
+        impl: RoomSoldRecordRepository,
+    ): SoldRecordRepository
 }

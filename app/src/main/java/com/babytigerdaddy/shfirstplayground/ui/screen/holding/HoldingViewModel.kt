@@ -4,9 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.babytigerdaddy.shfirstplayground.domain.model.Holding
 import com.babytigerdaddy.shfirstplayground.domain.model.HoldingSummary
+import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeMood
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.SoldRecordRepository
 import com.babytigerdaddy.shfirstplayground.domain.usecase.HoldingCalculator
+import com.babytigerdaddy.shfirstplayground.domain.usecase.RecordSaleUseCase
+import com.babytigerdaddy.shfirstplayground.domain.usecase.SoldRecordCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,6 +44,8 @@ data class HoldingInputUiState(
 @HiltViewModel
 class HoldingViewModel @Inject constructor(
     private val repository: HoldingRepository,
+    private val soldRepository: SoldRecordRepository,
+    private val recordSale: RecordSaleUseCase,
 ) : ViewModel() {
 
     private val _input = MutableStateFlow(HoldingInputUiState())
@@ -49,6 +55,11 @@ class HoldingViewModel @Inject constructor(
     val summary: StateFlow<HoldingSummary> = repository.observeAll()
         .map(HoldingCalculator::compute)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HoldingSummary.EMPTY)
+
+    /** 매도 내역 집계 — 총 실현·평균 수익률·승률·누적 그래프. '판 내역' 탭용. */
+    val soldHistory: StateFlow<SoldHistorySummary> = soldRepository.observeAll()
+        .map(SoldRecordCalculator::compute)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SoldHistorySummary.EMPTY)
 
     fun onTickerChange(text: String) = _input.update { it.copy(ticker = text) }
     fun onBuyPriceChange(text: String) =
@@ -90,14 +101,13 @@ class HoldingViewModel @Inject constructor(
     }
 
     /**
-     * 매도 — 보유 종료(목록에서 제거).
+     * 매도 — 보유에서 빼고 '매도 내역'으로 이관한다.
      *
-     * 보유노트는 손익일지와 분리된 단독 앱이라 일지로 넘기지 않는다.
-     * (mood·note는 화면 호환을 위해 받되 이 앱에선 사용하지 않음.)
+     * 매도가는 매도 시점 현재가. (mood·note는 화면 호환을 위해 받되 이 앱에선 사용하지 않음.)
      */
     fun sell(holding: Holding, mood: TradeMood = TradeMood.FLAT, note: String = "") {
         viewModelScope.launch {
-            repository.delete(holding.id)
+            recordSale(holding)
         }
     }
 

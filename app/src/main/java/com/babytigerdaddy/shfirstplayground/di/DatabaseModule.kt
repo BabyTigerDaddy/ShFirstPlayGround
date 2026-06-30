@@ -7,6 +7,7 @@ import com.babytigerdaddy.shfirstplayground.data.local.database.GrowthMilestoneD
 import com.babytigerdaddy.shfirstplayground.data.local.database.HappyLogDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.HoldingDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.MonthlyGoalDao
+import com.babytigerdaddy.shfirstplayground.data.local.database.SoldRecordDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.TradeJournalDao
 import dagger.Module
 import dagger.Provides
@@ -47,6 +48,10 @@ object DatabaseModule {
     @Provides
     fun provideHoldingDao(database: AppDatabase): HoldingDao =
         database.holdingDao()
+
+    @Provides
+    fun provideSoldRecordDao(database: AppDatabase): SoldRecordDao =
+        database.soldRecordDao()
 
     private const val DB_NAME = "shfirstplayground.db"
 }

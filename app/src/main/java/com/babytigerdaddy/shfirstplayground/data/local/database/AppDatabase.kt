@@ -12,6 +12,7 @@ import androidx.room.TypeConverters
  * v2 → v3: TradeJournalEntity 추가 (v5 매매일지).
  * v3 → v4: TradeJournal에 tickers(종목) 컬럼 + MonthlyGoalEntity 추가 (상용화 확장).
  * v4 → v5: HoldingEntity 추가 (보유 종목 추적 — 와이프 요청).
+ * v5 → v6: SoldRecordEntity 추가 (매도 내역 — 보유노트).
  */
 @Database(
     entities = [
@@ -20,8 +21,9 @@ import androidx.room.TypeConverters
         TradeJournalEntity::class,
         MonthlyGoalEntity::class,
         HoldingEntity::class,
+        SoldRecordEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -31,4 +33,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun tradeJournalDao(): TradeJournalDao
     abstract fun monthlyGoalDao(): MonthlyGoalDao
     abstract fun holdingDao(): HoldingDao
+    abstract fun soldRecordDao(): SoldRecordDao
 }
