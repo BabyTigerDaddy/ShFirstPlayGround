@@ -1,10 +1,13 @@
 package com.babytigerdaddy.shfirstplayground.ui.navigation
 
 import androidx.compose.runtime.Composable
-import com.babytigerdaddy.shfirstplayground.ui.screen.trade.TradeMainScreen
+import com.babytigerdaddy.shfirstplayground.ui.screen.holding.HoldingScreen
 
-/** v5 root — 매매일지(입력/추이 2탭). v4 육아앱 화면(MainScreen)은 보존되어 있고 진입점만 교체. */
+/**
+ * holding-note-app root — '보유노트'(와이프용 보유현황 단독 앱).
+ * 매매일지/육아 화면은 코드엔 남아있으나 진입점은 보유현황 하나만 띄운다(탭 없음).
+ */
 @Composable
 fun AppNavigation() {
-    TradeMainScreen()
+    HoldingScreen()
 }

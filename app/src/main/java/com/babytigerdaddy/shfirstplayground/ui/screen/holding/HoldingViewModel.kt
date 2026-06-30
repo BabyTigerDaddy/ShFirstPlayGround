@@ -7,7 +7,6 @@ import com.babytigerdaddy.shfirstplayground.domain.model.HoldingSummary
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeMood
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
 import com.babytigerdaddy.shfirstplayground.domain.usecase.HoldingCalculator
-import com.babytigerdaddy.shfirstplayground.domain.usecase.SellHoldingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,7 +40,6 @@ data class HoldingInputUiState(
 @HiltViewModel
 class HoldingViewModel @Inject constructor(
     private val repository: HoldingRepository,
-    private val sellHolding: SellHoldingUseCase,
 ) : ViewModel() {
 
     private val _input = MutableStateFlow(HoldingInputUiState())
@@ -91,10 +89,15 @@ class HoldingViewModel @Inject constructor(
         }
     }
 
-    /** 매도 — 실현손익을 매매일지로 넘기고 보유 목록에서 제거. */
+    /**
+     * 매도 — 보유 종료(목록에서 제거).
+     *
+     * 보유노트는 손익일지와 분리된 단독 앱이라 일지로 넘기지 않는다.
+     * (mood·note는 화면 호환을 위해 받되 이 앱에선 사용하지 않음.)
+     */
     fun sell(holding: Holding, mood: TradeMood = TradeMood.FLAT, note: String = "") {
         viewModelScope.launch {
-            sellHolding(holding, mood = mood, note = note)
+            repository.delete(holding.id)
         }
     }
 

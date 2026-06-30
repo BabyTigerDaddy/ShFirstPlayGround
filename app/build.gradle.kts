@@ -11,7 +11,8 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.babytigerdaddy.shfirstplayground"
+        // holding-note-app: 손익일지(매매일지)와 별개 앱으로 동시 설치되게 식별자 분리.
+        applicationId = "com.babytigerdaddy.holdingnote"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
