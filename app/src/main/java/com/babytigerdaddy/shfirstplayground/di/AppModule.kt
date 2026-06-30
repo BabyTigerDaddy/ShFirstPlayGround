@@ -2,10 +2,12 @@ package com.babytigerdaddy.shfirstplayground.di
 
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomGrowthMilestoneRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomHappyLogRepository
+import com.babytigerdaddy.shfirstplayground.data.repository.RoomHoldingRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomMonthlyGoalRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomTradeJournalRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.GrowthMilestoneRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HappyLogRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.MonthlyGoalRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.TradeJournalRepository
 import dagger.Binds
@@ -42,4 +44,10 @@ abstract class AppModule {
     abstract fun bindMonthlyGoalRepository(
         impl: RoomMonthlyGoalRepository,
     ): MonthlyGoalRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindHoldingRepository(
+        impl: RoomHoldingRepository,
+    ): HoldingRepository
 }

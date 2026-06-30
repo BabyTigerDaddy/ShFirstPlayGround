@@ -11,6 +11,7 @@ import androidx.room.TypeConverters
  * (DatabaseBuilder.fallbackToDestructiveMigration 적용).
  * v2 → v3: TradeJournalEntity 추가 (v5 매매일지).
  * v3 → v4: TradeJournal에 tickers(종목) 컬럼 + MonthlyGoalEntity 추가 (상용화 확장).
+ * v4 → v5: HoldingEntity 추가 (보유 종목 추적 — 와이프 요청).
  */
 @Database(
     entities = [
@@ -18,8 +19,9 @@ import androidx.room.TypeConverters
         GrowthMilestoneEntity::class,
         TradeJournalEntity::class,
         MonthlyGoalEntity::class,
+        HoldingEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -28,4 +30,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun growthMilestoneDao(): GrowthMilestoneDao
     abstract fun tradeJournalDao(): TradeJournalDao
     abstract fun monthlyGoalDao(): MonthlyGoalDao
+    abstract fun holdingDao(): HoldingDao
 }
