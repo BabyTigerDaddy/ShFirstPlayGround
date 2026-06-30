@@ -59,6 +59,7 @@ fun TradeMainScreen() {
         ) { tab ->
             when (tab) {
                 TradeTab.TODAY -> InputScreen()
+                TradeTab.HOLDING -> com.babytigerdaddy.shfirstplayground.ui.screen.holding.HoldingScreen()
                 TradeTab.DASHBOARD -> TrendScreen()
                 TradeTab.CALENDAR -> CalendarScreen()
                 TradeTab.STATS -> StatsScreen()
@@ -70,6 +71,7 @@ fun TradeMainScreen() {
 
 private enum class TradeTab(val label: String, val emoji: String) {
     TODAY("오늘", "✏️"),
+    HOLDING("보유", "💼"),
     DASHBOARD("현황", "📈"),
     CALENDAR("달력", "📅"),
     STATS("통계", "📊"),
