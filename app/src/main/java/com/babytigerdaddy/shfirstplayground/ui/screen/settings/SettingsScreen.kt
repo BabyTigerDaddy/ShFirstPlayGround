@@ -47,20 +47,27 @@ import com.babytigerdaddy.shfirstplayground.ui.theme.holdingColorsFor
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit = {},
+    embedded: Boolean = false,
+    modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val c = LocalHoldingColors.current
 
     Column(
-        modifier = Modifier.fillMaxSize().background(c.bg)
+        modifier = modifier.fillMaxSize().background(c.bg)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 18.dp),
     ) {
         Spacer(Modifier.height(22.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) { Text("←", fontSize = 22.sp, color = c.ink) }
+        if (embedded) {
+            // 하단 탭으로 들어온 경우 — 뒤로가기 없이 제목만
             Text("설정", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onBack) { Text("←", fontSize = 22.sp, color = c.ink) }
+                Text("설정", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
+            }
         }
 
         Spacer(Modifier.height(10.dp))

@@ -31,6 +31,10 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -69,6 +73,7 @@ import com.babytigerdaddy.shfirstplayground.ui.screen.trade.LossBlue
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.ProfitRed
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.formatWon
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.pnlColor
+import com.babytigerdaddy.shfirstplayground.ui.screen.settings.SettingsScreen
 import com.babytigerdaddy.shfirstplayground.ui.theme.LocalHoldingColors
 import java.time.Instant
 import java.time.LocalDate
@@ -81,12 +86,9 @@ private val EntryBadgeFg = Color(0xFF5A49C8)
 private val DaysBadgeBg = Color(0xFFD7F0DF)
 private val DaysBadgeFg = Color(0xFF15883F)
 
-/** 보유노트 — 보유 중(표) / 판 내역(집계·그래프·매도 리스트) 토글 단독 앱. */
+/** 보유노트 — 하단 4탭(보유 / 배분 / 판내역 / 설정) 단독 앱. */
 @Composable
-fun HoldingScreen(
-    viewModel: HoldingViewModel = hiltViewModel(),
-    onOpenSettings: () -> Unit = {},
-) {
+fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     val summary by viewModel.summary.collectAsStateWithLifecycle()
     val sold by viewModel.soldHistory.collectAsStateWithLifecycle()
     val allocation by viewModel.allocation.collectAsStateWithLifecycle()
@@ -94,7 +96,7 @@ fun HoldingScreen(
     val selectedAccountId by viewModel.selectedAccountId.collectAsStateWithLifecycle()
     val priceRefresh by viewModel.priceRefresh.collectAsStateWithLifecycle()
     val masterSync by viewModel.masterSync.collectAsStateWithLifecycle()
-    var tab by remember { mutableIntStateOf(0) } // 0=보유, 1=배분, 2=판내역
+    var tab by remember { mutableIntStateOf(0) } // 0=보유 1=배분 2=판내역 3=설정
     var showAdd by remember { mutableStateOf(false) }
     var sellTarget by remember { mutableStateOf<Holding?>(null) }
     var editTarget by remember { mutableStateOf<Holding?>(null) }
@@ -108,22 +110,19 @@ fun HoldingScreen(
     // 앱 진입 시 저장된 종목 현재가를 야후에서 자동 갱신
     LaunchedEffect(Unit) { viewModel.refreshPrices() }
 
-    Box(modifier = Modifier.fillMaxSize().background(c.bg)) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 18.dp),
-            contentPadding = PaddingValues(top = 24.dp, bottom = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(text = "보유노트", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
-                        TextButton(onClick = onOpenSettings) { Text("⚙", fontSize = 22.sp, color = c.sub) }
-                    }
+    Scaffold(
+        containerColor = c.bg,
+        bottomBar = { HoldingBottomBar(tab = tab, onSelect = { tab = it }) },
+    ) { inner ->
+        if (tab == 3) {
+            SettingsScreen(embedded = true, modifier = Modifier.padding(inner))
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(inner).padding(horizontal = 18.dp),
+                contentPadding = PaddingValues(top = 18.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                item {
                     AccountSelector(
                         accounts = accounts,
                         selectedId = selectedAccountId,
@@ -133,30 +132,29 @@ fun HoldingScreen(
                         onDeleteClick = { showDeleteAccount = true },
                     )
                 }
-            }
-            if ((masterSync.loading && masterSync.firstLoad) || masterSync.updatedCount > 0 || masterSync.failed) {
-                item { MasterSyncBar(masterSync) }
-            }
-            item { RefreshBar(priceRefresh, onRefresh = { viewModel.refreshPrices() }) }
-            item { SegToggle(tab = tab, onSelect = { tab = it }) }
+                if ((masterSync.loading && masterSync.firstLoad) || masterSync.updatedCount > 0 || masterSync.failed) {
+                    item { MasterSyncBar(masterSync) }
+                }
+                item { RefreshBar(priceRefresh, onRefresh = { viewModel.refreshPrices() }) }
 
-            when (tab) {
-                0 -> {
-                    item { SummaryHeader(summary.totalEval, summary.totalReturnRate, summary.totalPnl, summary.totalCost) }
-                    item {
-                        FilledTonalButton(onClick = { showAdd = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
-                            Text(text = "+  종목 추가", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                when (tab) {
+                    0 -> {
+                        item { SummaryHeader(summary.totalEval, summary.totalReturnRate, summary.totalPnl, summary.totalCost) }
+                        item {
+                            FilledTonalButton(onClick = { showAdd = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
+                                Text(text = "+  종목 추가", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        if (summary.holdings.isEmpty()) {
+                            item { Text(text = "들고 있는 종목을 추가하면\n표로 한눈에 보여요.", fontSize = 14.sp, color = c.sub, modifier = Modifier.padding(top = 6.dp)) }
+                        } else {
+                            item { Text(text = "행 탭 → 편집 · 길게 눌러 삭제 · 평가손익·수익률은 세금·수수료 포함", fontSize = 11.sp, color = c.faint) }
+                            item { HoldingTable(summary.holdings, onEdit = { editTarget = it }, onDelete = { delHolding = it }) }
                         }
                     }
-                    if (summary.holdings.isEmpty()) {
-                        item { Text(text = "들고 있는 종목을 추가하면\n표로 한눈에 보여요.", fontSize = 14.sp, color = c.sub, modifier = Modifier.padding(top = 6.dp)) }
-                    } else {
-                        item { Text(text = "행 탭 → 편집 · 길게 눌러 삭제 · 평가손익·수익률은 세금·수수료 포함", fontSize = 11.sp, color = c.faint) }
-                        item { HoldingTable(summary.holdings, onEdit = { editTarget = it }, onDelete = { delHolding = it }) }
-                    }
+                    1 -> allocationSection(allocation)
+                    else -> soldSection(sold, onDelete = { delSold = it })
                 }
-                1 -> allocationSection(allocation)
-                else -> soldSection(sold, onDelete = { delSold = it })
             }
         }
     }
@@ -186,22 +184,29 @@ fun HoldingScreen(
 }
 
 @Composable
-private fun SegToggle(tab: Int, onSelect: (Int) -> Unit) {
+private fun HoldingBottomBar(tab: Int, onSelect: (Int) -> Unit) {
     val c = LocalHoldingColors.current
-    Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.line).padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
-    ) {
-        listOf("보유 중", "배분", "판 내역").forEachIndexed { i, label ->
-            val sel = i == tab
-            Box(
-                modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
-                    .background(if (sel) c.card else Color.Transparent)
-                    .clickable { onSelect(i) }.padding(vertical = 9.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (sel) c.ink else c.sub)
-            }
+    val items = listOf(
+        "💼" to "보유",
+        "🥧" to "배분",
+        "🧾" to "판내역",
+        "•••" to "설정",
+    )
+    NavigationBar(containerColor = c.card, tonalElevation = 0.dp) {
+        items.forEachIndexed { i, (icon, label) ->
+            NavigationBarItem(
+                selected = i == tab,
+                onClick = { onSelect(i) },
+                icon = { Text(icon, fontSize = 17.sp) },
+                label = { Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold) },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = c.point,
+                    selectedTextColor = c.point,
+                    indicatorColor = c.pointBg,
+                    unselectedIconColor = c.sub,
+                    unselectedTextColor = c.sub,
+                ),
+            )
         }
     }
 }
