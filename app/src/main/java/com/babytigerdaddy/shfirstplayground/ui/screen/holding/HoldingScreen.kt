@@ -194,19 +194,33 @@ private fun AccountSelector(
     onDeleteClick: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val isAll = selectedId == Account.ALL_ID
     val curIndex = accounts.indexOfFirst { it.id == selectedId }.coerceAtLeast(0)
-    val cur = accounts.getOrNull(curIndex)
+    val curName = if (isAll) Account.ALL_NAME else accounts.getOrNull(curIndex)?.name ?: "내 계좌"
+    val curColor = if (isAll) HoldSub else AllocColors[curIndex % AllocColors.size]
     Box {
         Row(
             modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(HoldCard).clickable { expanded = true }.padding(horizontal = 12.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
-            Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(AllocColors[curIndex % AllocColors.size]))
-            Text(cur?.name ?: "내 계좌", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = HoldInk)
+            Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(curColor))
+            Text(curName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = HoldInk)
             Text("▾", fontSize = 13.sp, color = HoldSub)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            // 전체 합산 (가상 계좌)
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(HoldSub))
+                        Text("전체 (합산)", color = HoldInk, fontWeight = if (isAll) FontWeight.Bold else FontWeight.Normal)
+                        if (isAll) Text("✓", color = LossBlue)
+                    }
+                },
+                onClick = { onSelect(Account.ALL_ID); expanded = false },
+            )
+            HorizontalDivider()
             accounts.forEachIndexed { i, a ->
                 DropdownMenuItem(
                     text = {
@@ -221,8 +235,10 @@ private fun AccountSelector(
             }
             HorizontalDivider()
             DropdownMenuItem(text = { Text("+ 새 계좌 추가", color = LossBlue) }, onClick = { expanded = false; onAddClick() })
-            DropdownMenuItem(text = { Text("현재 계좌 이름 변경", color = HoldInk) }, onClick = { expanded = false; onRenameClick() })
-            if (accounts.size > 1) DropdownMenuItem(text = { Text("현재 계좌 삭제", color = ProfitRed) }, onClick = { expanded = false; onDeleteClick() })
+            if (!isAll) {
+                DropdownMenuItem(text = { Text("현재 계좌 이름 변경", color = HoldInk) }, onClick = { expanded = false; onRenameClick() })
+                if (accounts.size > 1) DropdownMenuItem(text = { Text("현재 계좌 삭제", color = ProfitRed) }, onClick = { expanded = false; onDeleteClick() })
+            }
         }
     }
 }
