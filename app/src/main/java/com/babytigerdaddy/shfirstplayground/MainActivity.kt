@@ -14,7 +14,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ShFirstPlayGroundTheme {
+            // 보유노트는 와이프용 — 라이트 톤 고정(다크모드에서 다이얼로그 검정배경+검정글씨 방지)
+            ShFirstPlayGroundTheme(darkTheme = false) {
                 AppNavigation()
             }
         }

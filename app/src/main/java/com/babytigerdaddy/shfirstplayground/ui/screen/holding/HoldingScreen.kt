@@ -78,6 +78,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     var tab by remember { mutableIntStateOf(0) } // 0=보유, 1=판내역
     var showAdd by remember { mutableStateOf(false) }
     var sellTarget by remember { mutableStateOf<Holding?>(null) }
+    var editTarget by remember { mutableStateOf<Holding?>(null) }
 
     Box(modifier = Modifier.fillMaxSize().background(HoldBg)) {
         LazyColumn(
@@ -100,7 +101,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                 if (summary.holdings.isEmpty()) {
                     item { Text(text = "들고 있는 종목을 추가하면\n표로 한눈에 보여요.", fontSize = 14.sp, color = HoldSub, modifier = Modifier.padding(top = 6.dp)) }
                 } else {
-                    item { HoldingTable(summary.holdings, onSell = { sellTarget = it }) }
+                    item { HoldingTable(summary.holdings, onSell = { sellTarget = it }, onEditPrice = { editTarget = it }) }
                 }
             } else {
                 soldSection(sold)
@@ -111,6 +112,9 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     if (showAdd) AddHoldingDialog(viewModel = viewModel, onClose = { showAdd = false })
     sellTarget?.let { h ->
         SellDialog(holding = h, onConfirm = { viewModel.sell(h); sellTarget = null }, onDismiss = { sellTarget = null })
+    }
+    editTarget?.let { h ->
+        EditPriceDialog(holding = h, onConfirm = { p -> viewModel.updateCurrentPrice(h, p); editTarget = null }, onDismiss = { editTarget = null })
     }
 }
 
@@ -136,7 +140,7 @@ private fun SegToggle(tab: Int, onSelect: (Int) -> Unit) {
 
 // ---------- 보유 중 (표) ----------
 @Composable
-private fun HoldingTable(holdings: List<Holding>, onSell: (Holding) -> Unit) {
+private fun HoldingTable(holdings: List<Holding>, onSell: (Holding) -> Unit, onEditPrice: (Holding) -> Unit) {
     Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = HoldCard), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
         Column {
             // 헤더
@@ -152,7 +156,9 @@ private fun HoldingTable(holdings: List<Holding>, onSell: (Holding) -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.weight(1.5f)) { Text(h.ticker, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = HoldInk) }
-                    Box(Modifier.weight(1.2f)) { Text(comma(h.currentPrice), fontSize = 13.sp, color = HoldInk, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) }
+                    Box(Modifier.weight(1.2f).clip(RoundedCornerShape(6.dp)).clickable { onEditPrice(h) }.padding(vertical = 2.dp)) {
+                        Text(comma(h.currentPrice) + " ✎", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = LossBlue, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth())
+                    }
                     Box(Modifier.weight(1.1f)) { Text("${signed(h.returnRate)}%", fontSize = 13.5.sp, fontWeight = FontWeight.Bold, color = tone, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) }
                     Box(Modifier.weight(0.9f), contentAlignment = Alignment.CenterEnd) {
                         val (bg, fg, lab) = if (days <= 0L) Triple(EntryBadgeBg, EntryBadgeFg, "진입") else Triple(DaysBadgeBg, DaysBadgeFg, "${days}일")
@@ -282,6 +288,9 @@ private fun AddHoldingDialog(viewModel: HoldingViewModel, onClose: () -> Unit) {
     var showDate by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onClose,
+        containerColor = HoldCard,
+        titleContentColor = HoldInk,
+        textContentColor = HoldSub,
         title = { Text("보유 종목 추가", fontWeight = FontWeight.Bold, color = HoldInk) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -311,6 +320,9 @@ private fun AddHoldingDialog(viewModel: HoldingViewModel, onClose: () -> Unit) {
 private fun SellDialog(holding: Holding, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = HoldCard,
+        titleContentColor = HoldInk,
+        textContentColor = HoldSub,
         title = { Text("${holding.ticker} 매도", fontWeight = FontWeight.Bold, color = HoldInk) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -319,7 +331,35 @@ private fun SellDialog(holding: Holding, onConfirm: () -> Unit, onDismiss: () ->
             }
         },
         confirmButton = { TextButton(onClick = onConfirm) { Text("매도", color = LossBlue) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("취소") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = HoldSub) } },
+    )
+}
+
+@Composable
+private fun EditPriceDialog(holding: Holding, onConfirm: (Long) -> Unit, onDismiss: () -> Unit) {
+    var text by remember { mutableStateOf(holding.currentPrice.toString()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = HoldCard,
+        titleContentColor = HoldInk,
+        textContentColor = HoldSub,
+        title = { Text("${holding.ticker} 현재가 수정", fontWeight = FontWeight.Bold, color = HoldInk) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("매수가 ${comma(holding.buyPrice)}원 · 장 열릴 때마다 현재가만 고치면 수익률이 다시 계산돼요.", fontSize = 13.sp, color = HoldSub)
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it.filter { c -> c.isDigit() }.take(12) },
+                    singleLine = true,
+                    label = { Text("현재가") },
+                    suffix = { Text("원") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = { text.toLongOrNull()?.let(onConfirm) }, enabled = text.any { it.isDigit() }) { Text("저장", color = LossBlue) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = HoldSub) } },
     )
 }
 
