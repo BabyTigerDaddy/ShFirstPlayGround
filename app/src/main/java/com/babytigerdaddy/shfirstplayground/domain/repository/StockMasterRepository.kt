@@ -8,6 +8,9 @@ interface StockMasterRepository {
     /** 이름/코드로 검색(자동완성 후보). */
     suspend fun search(query: String): List<StockMaster>
 
+    /** 코드로 단건 조회(시세 심볼 시장 판별용). */
+    suspend fun getByCode(code: String): StockMaster?
+
     /** 저장된 종목 수(0이면 아직 목록 미로딩). */
     suspend fun count(): Int
 

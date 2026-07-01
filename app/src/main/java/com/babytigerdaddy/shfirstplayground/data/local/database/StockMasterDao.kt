@@ -17,6 +17,9 @@ interface StockMasterDao {
     )
     suspend fun search(q: String): List<StockMasterEntity>
 
+    @Query("SELECT * FROM stock_master WHERE code = :code LIMIT 1")
+    suspend fun getByCode(code: String): StockMasterEntity?
+
     @Query("SELECT COUNT(*) FROM stock_master")
     suspend fun count(): Int
 

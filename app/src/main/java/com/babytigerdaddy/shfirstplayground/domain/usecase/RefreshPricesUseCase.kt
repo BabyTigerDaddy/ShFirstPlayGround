@@ -1,6 +1,7 @@
 package com.babytigerdaddy.shfirstplayground.domain.usecase
 
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.StockMasterRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.StockPriceSource
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -12,14 +13,17 @@ import javax.inject.Inject
  */
 class RefreshPricesUseCase @Inject constructor(
     private val holdingRepository: HoldingRepository,
+    private val stockMasterRepository: StockMasterRepository,
     private val priceSource: StockPriceSource,
 ) {
-    /** @return 시세를 받아온 종목 수(실패/코드없음 제외). */
+    /** @return 시세를 받아온 종목 수(실패/코드없음/시장미상 제외). */
     suspend operator fun invoke(): Int {
         val holdings = holdingRepository.observeAll().first().filter { it.code.isNotBlank() }
         var fetched = 0
         for (h in holdings) {
-            val price = priceSource.fetchPrice(h.code) ?: continue
+            // 시장(.KS/.KQ)이 있어야 정확한 값 — 종목 마스터에서 판별. 없으면 건너뜀(엉뚱한 값 방지).
+            val market = stockMasterRepository.getByCode(h.code)?.market ?: continue
+            val price = priceSource.fetchPrice(h.code, market) ?: continue
             fetched++
             if (price != h.currentPrice) {
                 holdingRepository.save(h.copy(currentPrice = price))

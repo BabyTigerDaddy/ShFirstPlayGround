@@ -19,6 +19,9 @@ class RoomStockMasterRepository @Inject constructor(
         return dao.search(q).map(StockMasterEntity::toDomain)
     }
 
+    override suspend fun getByCode(code: String): StockMaster? =
+        dao.getByCode(code)?.toDomain()
+
     override suspend fun count(): Int = dao.count()
 
     override suspend fun saveAll(stocks: List<StockMaster>) {
