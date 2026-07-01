@@ -16,9 +16,11 @@ import com.babytigerdaddy.shfirstplayground.domain.repository.SoldRecordReposito
 import com.babytigerdaddy.shfirstplayground.domain.repository.StockMasterRepository
 import com.babytigerdaddy.shfirstplayground.domain.usecase.AllocationCalculator
 import com.babytigerdaddy.shfirstplayground.domain.usecase.HoldingCalculator
+import com.babytigerdaddy.shfirstplayground.domain.usecase.MasterSyncResult
 import com.babytigerdaddy.shfirstplayground.domain.usecase.RecordSaleUseCase
 import com.babytigerdaddy.shfirstplayground.domain.usecase.RefreshPricesUseCase
 import com.babytigerdaddy.shfirstplayground.domain.usecase.SoldRecordCalculator
+import com.babytigerdaddy.shfirstplayground.domain.usecase.SyncStockMasterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -53,6 +55,16 @@ data class HoldingInputUiState(
             !saving
 }
 
+/** 종목 목록 동기화 상태. */
+data class MasterSyncState(
+    val loading: Boolean = false,
+    /** 로컬에 전종목이 아직 없어 처음 받는 중(‘종목 목록 준비 중’). false면 갱신 확인(짧음). */
+    val firstLoad: Boolean = false,
+    /** 방금 갱신된 종목 수(0이면 변화 없음/미실행). */
+    val updatedCount: Int = 0,
+    val failed: Boolean = false,
+)
+
 /** 시세 자동 갱신 상태. */
 data class PriceRefreshState(
     val loading: Boolean = false,
@@ -72,6 +84,7 @@ class HoldingViewModel @Inject constructor(
     private val stockMasterRepository: StockMasterRepository,
     private val recordSale: RecordSaleUseCase,
     private val refreshPricesUseCase: RefreshPricesUseCase,
+    private val syncStockMasterUseCase: SyncStockMasterUseCase,
 ) : ViewModel() {
 
     private val _input = MutableStateFlow(HoldingInputUiState())
@@ -93,6 +106,10 @@ class HoldingViewModel @Inject constructor(
     private val _priceRefresh = MutableStateFlow(PriceRefreshState())
     val priceRefresh: StateFlow<PriceRefreshState> = _priceRefresh.asStateFlow()
 
+    /** 종목 목록 동기화 상태 — 첫 진입 '준비 중' / 갱신된 날 '갱신 중'용. */
+    private val _masterSync = MutableStateFlow(MasterSyncState())
+    val masterSync: StateFlow<MasterSyncState> = _masterSync.asStateFlow()
+
     init {
         viewModelScope.launch {
             // 다중계좌 첫 실행: 계좌 없으면 기본 계좌 생성(기존 데이터가 여기로 이어붙음).
@@ -106,9 +123,32 @@ class HoldingViewModel @Inject constructor(
                     ),
                 )
             }
-            // 종목 마스터 비어있으면 대표 종목 시드(전체 목록은 추후 마스터 파일로 대체).
+            // 오프라인·원격 실패 대비 최소 시드(전종목은 syncStockMaster가 원격에서 받아 덮어씀).
             if (stockMasterRepository.count() == 0) {
                 stockMasterRepository.saveAll(StockSeed.list)
+            }
+        }
+        // 앱 진입 시 전종목 목록 동기화(버전 바뀐 날만 실제 다운로드).
+        syncStockMaster()
+    }
+
+    /**
+     * 종목 목록 동기화 — 공개 주소에서 전종목 받아 DB 갱신(버전 같으면 스킵).
+     * 첫 진입이면 '준비 중', 새 종목으로 바뀐 날이면 '갱신 중'으로 상태를 노출한다.
+     */
+    fun syncStockMaster() {
+        if (_masterSync.value.loading) return
+        viewModelScope.launch {
+            val firstLoad = stockMasterRepository.count() <= StockSeed.list.size
+            _masterSync.update { it.copy(loading = true, firstLoad = firstLoad, failed = false) }
+            val result = runCatching { syncStockMasterUseCase() }.getOrNull()
+            _masterSync.value = when (result) {
+                is MasterSyncResult.Updated ->
+                    MasterSyncState(loading = false, firstLoad = firstLoad, updatedCount = result.count)
+                MasterSyncResult.NoChange ->
+                    MasterSyncState(loading = false)
+                else ->
+                    MasterSyncState(loading = false, firstLoad = firstLoad, failed = true)
             }
         }
     }
