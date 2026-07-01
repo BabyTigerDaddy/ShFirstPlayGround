@@ -158,7 +158,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                         if (summary.holdings.isEmpty()) {
                             item { Text(text = "들고 있는 종목을 추가하면\n표로 한눈에 보여요.", fontSize = 14.sp, color = c.sub, modifier = Modifier.padding(top = 6.dp)) }
                         } else {
-                            item { Text(text = "행 탭 → 편집 · 길게 눌러 삭제 · 평가손익·수익률은 세금·수수료 포함", fontSize = 11.sp, color = c.faint) }
+                            item { Text(text = "행 탭 → 편집 · 길게 눌러 삭제", fontSize = 11.sp, color = c.faint) }
                             item { HoldingTable(summary.holdings, onEdit = { editTarget = it }, onDelete = { delHolding = it }) }
                         }
                     }
@@ -370,7 +370,7 @@ private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onD
             }
             holdings.forEachIndexed { idx, h ->
                 if (idx > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(c.line))
-                val tone = pnlColor(h.netEvalPnl)
+                val tone = pnlColor(h.evalPnl)
                 val days = h.holdingDays(LocalDate.now())
                 Row(
                     Modifier.fillMaxWidth()
@@ -392,10 +392,10 @@ private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onD
                             Text(lab, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = fg)
                         }
                     }
-                    // 평가손익 / 수익률 (세금·수수료 포함 = 세후)
+                    // 평가손익 / 수익률 (세전 — 증권사 잔고 화면과 동일)
                     Column(Modifier.weight(1.6f), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text(formatWon(h.netEvalPnl), fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = tone)
-                        Text("${signed(h.netReturnRate)}%", fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = tone)
+                        Text(formatWon(h.evalPnl), fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = tone)
+                        Text("${signed(h.returnRate)}%", fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = tone)
                     }
                 }
             }
