@@ -520,6 +520,7 @@ private fun SummaryHeader(totalEval: Long, rate: Double, totalPnl: Long, totalCo
 @Composable
 private fun AddHoldingDialog(viewModel: HoldingViewModel, onClose: () -> Unit) {
     val input by viewModel.input.collectAsStateWithLifecycle()
+    val candidates by viewModel.stockCandidates.collectAsStateWithLifecycle()
     var showDate by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onClose,
@@ -529,7 +530,28 @@ private fun AddHoldingDialog(viewModel: HoldingViewModel, onClose: () -> Unit) {
         title = { Text("보유 종목 추가", fontWeight = FontWeight.Bold, color = HoldInk) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(input.ticker, viewModel::onTickerChange, singleLine = true, label = { Text("종목명") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    value = input.ticker,
+                    onValueChange = { viewModel.onTickerChange(it); viewModel.searchStock(it) },
+                    singleLine = true,
+                    label = { Text("종목명 (이름으로 검색)") },
+                    suffix = { if (input.codeText.isNotBlank()) Text(input.codeText, color = HoldFaint) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (candidates.isNotEmpty()) {
+                    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xFFF3F5F8))) {
+                        candidates.take(6).forEach { s ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().clickable { viewModel.selectStock(s) }.padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(s.name, fontSize = 14.sp, color = HoldInk)
+                                Text("${s.code} · ${s.market}", fontSize = 11.sp, color = HoldFaint)
+                            }
+                        }
+                    }
+                }
                 OutlinedTextField(input.buyPriceText, viewModel::onBuyPriceChange, singleLine = true, label = { Text("매수가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(input.currentPriceText, viewModel::onCurrentPriceChange, singleLine = true, label = { Text("현재가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(input.quantityText, viewModel::onQuantityChange, singleLine = true, label = { Text("수량") }, suffix = { Text("주") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
