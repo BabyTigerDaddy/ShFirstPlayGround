@@ -30,6 +30,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -141,7 +142,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                     0 -> {
                         item { SummaryHeader(summary.totalEval, summary.totalReturnRate, summary.totalPnl, summary.totalCost) }
                         item {
-                            FilledTonalButton(onClick = { showAdd = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
+                            FilledTonalButton(onClick = { showAdd = true }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
                                 Text(text = "+  종목 추가", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -253,7 +254,7 @@ private fun RefreshBar(state: PriceRefreshState, onRefresh: () -> Unit) {
         Text(
             text = "↻ 새로고침",
             fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LossBlue,
-            modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(enabled = !state.loading) { onRefresh() }.padding(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.clip(MaterialTheme.shapes.small).clickable(enabled = !state.loading) { onRefresh() }.padding(horizontal = 8.dp, vertical = 4.dp),
         )
     }
 }
@@ -276,7 +277,7 @@ private fun AccountSelector(
     val curColor = if (isAll) c.sub else AllocColors[curIndex % AllocColors.size]
     Box {
         Row(
-            modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(c.card).clickable { expanded = true }.padding(horizontal = 12.dp, vertical = 7.dp),
+            modifier = Modifier.clip(MaterialTheme.shapes.medium).background(c.card).clickable { expanded = true }.padding(horizontal = 12.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
@@ -349,7 +350,7 @@ private fun AccountNameDialog(title: String, initial: String, onConfirm: (String
 @Composable
 private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onDelete: (Holding) -> Unit) {
     val c = LocalHoldingColors.current
-    Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+    Card(shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
         Column {
             // 헤더 (2단)
             Row(Modifier.fillMaxWidth().background(c.line).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -378,7 +379,7 @@ private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onD
                     Column(Modifier.weight(1.0f), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         Text("${h.quantity}", fontSize = 13.sp, color = c.ink)
                         val (bg, fg, lab) = if (days <= 0L) Triple(EntryBadgeBg, EntryBadgeFg, "진입") else Triple(DaysBadgeBg, DaysBadgeFg, "${days}일")
-                        Box(Modifier.clip(RoundedCornerShape(6.dp)).background(bg).padding(horizontal = 6.dp, vertical = 2.dp)) {
+                        Box(Modifier.clip(MaterialTheme.shapes.small).background(bg).padding(horizontal = 6.dp, vertical = 2.dp)) {
                             Text(lab, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = fg)
                         }
                     }
@@ -421,7 +422,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.soldSection(sold: Sol
     }
     item {
         val c = LocalHoldingColors.current
-        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(2.dp)) {
+        Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(2.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("누적 실현손익", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.ink)
                 if (sold.cumulative.size < 2) {
@@ -440,7 +441,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.soldSection(sold: Sol
     sold.bestSale?.let { b ->
         item {
             val c = LocalHoldingColors.current
-            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = ProfitRed.copy(alpha = 0.10f))) {
+            Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = ProfitRed.copy(alpha = 0.10f))) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column {
                         Text("🏆 베스트 매도", fontSize = 12.sp, color = c.sub)
@@ -464,7 +465,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.soldSection(sold: Sol
 @Composable
 private fun StatBox(title: String, value: String, accent: Color, modifier: Modifier = Modifier, sub: String? = null) {
     val c = LocalHoldingColors.current
-    Card(modifier = modifier, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(2.dp)) {
+    Card(modifier = modifier, shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(2.dp)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(title, fontSize = 11.5.sp, color = c.sub)
             Text(value, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = accent)
@@ -480,13 +481,13 @@ private fun SoldRow(r: SoldRecord, onDelete: (SoldRecord) -> Unit) {
     val tone = pnlColor(r.netRealizedPnl)
     Card(
         modifier = Modifier.fillMaxWidth().combinedClickable(onClick = {}, onLongClick = { onDelete(r) }),
-        shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(1.5.dp),
+        shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(1.5.dp),
     ) {
         Row(Modifier.fillMaxWidth().padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(r.ticker, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = c.ink)
-                    Box(Modifier.clip(RoundedCornerShape(6.dp)).background(c.line).padding(horizontal = 6.dp, vertical = 2.dp)) {
+                    Box(Modifier.clip(MaterialTheme.shapes.small).background(c.line).padding(horizontal = 6.dp, vertical = 2.dp)) {
                         Text("${r.heldDays}일 보유", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = c.sub)
                     }
                 }
@@ -516,7 +517,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.allocationSection(all
     }
     item {
         val c = LocalHoldingColors.current
-        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(3.dp)) {
+        Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(3.dp)) {
             Box(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
                 AllocationDonut(alloc.slices, Modifier.size(212.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -529,7 +530,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.allocationSection(all
     if (alloc.concentrationTicker != null) {
         item {
             val c = LocalHoldingColors.current
-            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = ProfitRed.copy(alpha = 0.10f))) {
+            Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = ProfitRed.copy(alpha = 0.10f))) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("⚠", fontSize = 18.sp)
                     Text(buildString { append(alloc.concentrationTicker); append("에 ") },
@@ -596,12 +597,12 @@ private fun AllocationLegendRow(index: Int, s: AllocationSlice) {
 private fun SummaryHeader(totalEval: Long, rate: Double, totalPnl: Long, totalCost: Long) {
     val c = LocalHoldingColors.current
     val tone = pnlColor(totalPnl)
-    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(3.dp)) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(3.dp)) {
         Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("총 평가금액", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.sub)
             Text(comma(totalEval) + "원", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Box(Modifier.clip(RoundedCornerShape(9.dp)).background(tone.copy(alpha = 0.14f)).padding(horizontal = 11.dp, vertical = 5.dp)) {
+                Box(Modifier.clip(MaterialTheme.shapes.small).background(tone.copy(alpha = 0.14f)).padding(horizontal = 11.dp, vertical = 5.dp)) {
                     Text("${signed(rate)}%", fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = tone)
                 }
                 Text("평가손익 ${formatWon(totalPnl)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = tone)
@@ -635,7 +636,7 @@ private fun AddHoldingDialog(viewModel: HoldingViewModel, onClose: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 if (candidates.isNotEmpty()) {
-                    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.line)) {
+                    Column(modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).background(c.line)) {
                         candidates.take(6).forEach { s ->
                             Row(
                                 modifier = Modifier.fillMaxWidth().clickable { viewModel.selectStock(s) }.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -651,7 +652,7 @@ private fun AddHoldingDialog(viewModel: HoldingViewModel, onClose: () -> Unit) {
                 OutlinedTextField(input.buyPriceText, viewModel::onBuyPriceChange, singleLine = true, label = { Text("매수가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(input.quantityText, viewModel::onQuantityChange, singleLine = true, label = { Text("수량") }, suffix = { Text("주") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 Text("현재가는 앱이 야후에서 자동으로 받아와요.", fontSize = 11.sp, color = c.faint)
-                OutlinedButton(onClick = { showDate = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                OutlinedButton(onClick = { showDate = true }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
                     Text("편입일 · ${input.entryDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))}", color = c.ink)
                 }
             }
@@ -726,10 +727,10 @@ private fun EditHoldingDialog(holding: Holding, onSave: (Holding) -> Unit, onSel
                 OutlinedTextField(buy, { buy = it.filter { c -> c.isDigit() }.take(12) }, singleLine = true, label = { Text("매수가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(qty, { qty = it.filter { c -> c.isDigit() }.take(9) }, singleLine = true, label = { Text("수량") }, suffix = { Text("주") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 Text("현재가는 앱이 야후에서 자동으로 갱신해요.", fontSize = 11.sp, color = c.faint)
-                OutlinedButton(onClick = { showDate = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                OutlinedButton(onClick = { showDate = true }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
                     Text("편입일 · ${entryDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))}", color = c.ink)
                 }
-                OutlinedButton(onClick = onSellClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                OutlinedButton(onClick = onSellClick, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
                     Text("이 종목 매도 (판 내역으로)", color = LossBlue)
                 }
             }

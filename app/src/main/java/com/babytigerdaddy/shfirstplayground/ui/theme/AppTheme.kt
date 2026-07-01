@@ -95,13 +95,13 @@ fun holdingColorsFor(palette: ThemePalette): HoldingColors = when (palette) {
 /** 화면 어디서든 현재 팔레트 색을 꺼내 쓰는 통로. 기본은 LIGHT. */
 val LocalHoldingColors = staticCompositionLocalOf { LightHoldingColors }
 
-// 모양 골격 — SOFT는 현재 둥근 값, SHARP는 각지게.
+// 모양 골격 — SOFT는 기존 보유노트 둥근 톤에 맞춘 값, SHARP는 각지게.
 val SoftShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp),
-    extraLarge = RoundedCornerShape(36.dp),
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(14.dp),
+    large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(26.dp),
 )
 
 val SharpShapes = Shapes(
