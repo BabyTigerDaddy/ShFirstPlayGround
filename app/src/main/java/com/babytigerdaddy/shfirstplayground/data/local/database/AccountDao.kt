@@ -20,4 +20,12 @@ interface AccountDao {
 
     @Query("DELETE FROM account WHERE id = :id")
     suspend fun delete(id: String)
+
+    /** 백업용 — 전체 일회성 조회. */
+    @Query("SELECT * FROM account")
+    suspend fun getAll(): List<AccountEntity>
+
+    /** 복원용 — 전체 삭제(클라우드 데이터로 덮어쓰기 전). */
+    @Query("DELETE FROM account")
+    suspend fun clearAll()
 }
