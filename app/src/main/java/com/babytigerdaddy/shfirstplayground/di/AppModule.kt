@@ -1,11 +1,13 @@
 package com.babytigerdaddy.shfirstplayground.di
 
+import com.babytigerdaddy.shfirstplayground.data.repository.RoomAccountRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomGrowthMilestoneRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomHappyLogRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomHoldingRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomMonthlyGoalRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomSoldRecordRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomTradeJournalRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.AccountRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.GrowthMilestoneRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HappyLogRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
@@ -58,4 +60,10 @@ abstract class AppModule {
     abstract fun bindSoldRecordRepository(
         impl: RoomSoldRecordRepository,
     ): SoldRecordRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAccountRepository(
+        impl: RoomAccountRepository,
+    ): AccountRepository
 }

@@ -1,0 +1,23 @@
+package com.babytigerdaddy.shfirstplayground.domain.model
+
+import java.time.LocalDateTime
+
+/**
+ * 계좌 — 가치투자용·단타용처럼 목적별로 나눠 보는 단위.
+ *
+ * 보유([Holding])·매도내역([SoldRecord])이 각자 [Holding.accountId]로 소속 계좌를 가리킨다.
+ * 다중계좌 업데이트 시 기존 데이터는 [DEFAULT_ID] 기본 계좌로 이어붙는다.
+ */
+data class Account(
+    val id: String,
+    val name: String,
+    /** 계좌 탭 정렬 순서(작을수록 앞). */
+    val sortOrder: Int,
+    val createdAt: LocalDateTime,
+) {
+    companion object {
+        /** 기존 데이터가 이어붙는 기본 계좌 id — 마이그레이션과 SQL default가 공유하는 값. */
+        const val DEFAULT_ID = "default"
+        const val DEFAULT_NAME = "내 계좌"
+    }
+}

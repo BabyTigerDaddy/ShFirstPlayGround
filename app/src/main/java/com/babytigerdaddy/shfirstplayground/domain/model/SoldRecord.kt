@@ -11,6 +11,8 @@ import java.time.LocalDateTime
  */
 data class SoldRecord(
     val id: String,
+    /** 소속 계좌 id. */
+    val accountId: String = Account.DEFAULT_ID,
     val ticker: String,
     /** 매수가(원, 1주). */
     val buyPrice: Long,

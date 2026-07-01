@@ -1,5 +1,6 @@
 package com.babytigerdaddy.shfirstplayground.data.local.database
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.babytigerdaddy.shfirstplayground.domain.model.Holding
@@ -10,6 +11,8 @@ import java.time.LocalDateTime
 @Entity(tableName = "holding")
 data class HoldingEntity(
     @PrimaryKey val id: String,
+    // defaultValue = Account.DEFAULT_ID('default') — v6→v7 마이그레이션 ALTER 문과 일치.
+    @ColumnInfo(defaultValue = "'default'") val accountId: String,
     val ticker: String,
     val buyPrice: Long,
     val currentPrice: Long,
@@ -19,6 +22,7 @@ data class HoldingEntity(
 ) {
     fun toDomain(): Holding = Holding(
         id = id,
+        accountId = accountId,
         ticker = ticker,
         buyPrice = buyPrice,
         currentPrice = currentPrice,
@@ -30,6 +34,7 @@ data class HoldingEntity(
     companion object {
         fun fromDomain(h: Holding): HoldingEntity = HoldingEntity(
             id = h.id,
+            accountId = h.accountId,
             ticker = h.ticker,
             buyPrice = h.buyPrice,
             currentPrice = h.currentPrice,

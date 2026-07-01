@@ -2,11 +2,13 @@ package com.babytigerdaddy.shfirstplayground.ui.screen.holding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.babytigerdaddy.shfirstplayground.domain.model.Account
 import com.babytigerdaddy.shfirstplayground.domain.model.AssetAllocation
 import com.babytigerdaddy.shfirstplayground.domain.model.Holding
 import com.babytigerdaddy.shfirstplayground.domain.model.HoldingSummary
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeMood
+import com.babytigerdaddy.shfirstplayground.domain.repository.AccountRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.SoldRecordRepository
 import com.babytigerdaddy.shfirstplayground.domain.usecase.AllocationCalculator
@@ -18,6 +20,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -47,26 +51,100 @@ data class HoldingInputUiState(
 class HoldingViewModel @Inject constructor(
     private val repository: HoldingRepository,
     private val soldRepository: SoldRecordRepository,
+    private val accountRepository: AccountRepository,
     private val recordSale: RecordSaleUseCase,
 ) : ViewModel() {
 
     private val _input = MutableStateFlow(HoldingInputUiState())
     val input: StateFlow<HoldingInputUiState> = _input.asStateFlow()
 
-    /** 보유 종목 집계 — 종목 변할 때 자동 갱신. */
-    val summary: StateFlow<HoldingSummary> = repository.observeAll()
+    /** 현재 보고 있는 계좌 id. */
+    private val _selectedAccountId = MutableStateFlow(Account.DEFAULT_ID)
+    val selectedAccountId: StateFlow<String> = _selectedAccountId.asStateFlow()
+
+    /** 계좌 목록. */
+    val accounts: StateFlow<List<Account>> = accountRepository.observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    init {
+        // 다중계좌 업데이트 첫 실행: 계좌가 하나도 없으면 기본 계좌 생성(기존 데이터가 여기로 이어붙음).
+        viewModelScope.launch {
+            if (accountRepository.count() == 0) {
+                accountRepository.save(
+                    Account(
+                        id = Account.DEFAULT_ID,
+                        name = Account.DEFAULT_NAME,
+                        sortOrder = 0,
+                        createdAt = LocalDateTime.now(),
+                    ),
+                )
+            }
+        }
+    }
+
+    /** 선택 계좌의 보유 종목만. */
+    private val accountHoldings = combine(repository.observeAll(), _selectedAccountId) { list, acc ->
+        list.filter { it.accountId == acc }
+    }
+
+    /** 보유 종목 집계(선택 계좌). */
+    val summary: StateFlow<HoldingSummary> = accountHoldings
         .map(HoldingCalculator::compute)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HoldingSummary.EMPTY)
 
-    /** 매도 내역 집계 — 총 실현·평균 수익률·승률·누적 그래프. '판 내역' 탭용. */
-    val soldHistory: StateFlow<SoldHistorySummary> = soldRepository.observeAll()
-        .map(SoldRecordCalculator::compute)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SoldHistorySummary.EMPTY)
+    /** 매도 내역 집계(선택 계좌). */
+    val soldHistory: StateFlow<SoldHistorySummary> =
+        combine(soldRepository.observeAll(), _selectedAccountId) { list, acc ->
+            list.filter { it.accountId == acc }
+        }
+            .map(SoldRecordCalculator::compute)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SoldHistorySummary.EMPTY)
 
-    /** 자산 배분 — 종목별 비중 + 집중 종목. '배분' 탭 원 그래프용. */
-    val allocation: StateFlow<AssetAllocation> = repository.observeAll()
+    /** 자산 배분(선택 계좌). */
+    val allocation: StateFlow<AssetAllocation> = accountHoldings
         .map(AllocationCalculator::compute)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssetAllocation.EMPTY)
+
+    // ---------- 계좌 ----------
+
+    fun selectAccount(id: String) {
+        _selectedAccountId.value = id
+    }
+
+    /** 새 계좌 추가하고 그 계좌로 전환. */
+    fun addAccount(name: String) {
+        val clean = name.trim().ifBlank { "새 계좌" }
+        viewModelScope.launch {
+            val order = (accounts.value.maxOfOrNull { it.sortOrder } ?: -1) + 1
+            val id = UUID.randomUUID().toString()
+            accountRepository.save(Account(id = id, name = clean, sortOrder = order, createdAt = LocalDateTime.now()))
+            _selectedAccountId.value = id
+        }
+    }
+
+    /** 계좌 이름 수정. */
+    fun renameAccount(id: String, name: String) {
+        val clean = name.trim().ifBlank { return }
+        viewModelScope.launch {
+            val acc = accounts.value.firstOrNull { it.id == id } ?: return@launch
+            accountRepository.save(acc.copy(name = clean))
+        }
+    }
+
+    /** 계좌 삭제 — 그 계좌의 보유·매도내역도 함께 정리. 마지막 한 개는 못 지움. */
+    fun deleteAccount(id: String) {
+        viewModelScope.launch {
+            if (accountRepository.count() <= 1) return@launch
+            repository.observeAll().first().filter { it.accountId == id }.forEach { repository.delete(it.id) }
+            soldRepository.observeAll().first().filter { it.accountId == id }.forEach { soldRepository.delete(it.id) }
+            accountRepository.delete(id)
+            if (_selectedAccountId.value == id) {
+                _selectedAccountId.value = accountRepository.observeAll().first().firstOrNull()?.id ?: Account.DEFAULT_ID
+            }
+        }
+    }
+
+    // ---------- 입력 ----------
 
     fun onTickerChange(text: String) = _input.update { it.copy(ticker = text) }
     fun onBuyPriceChange(text: String) =
@@ -77,7 +155,7 @@ class HoldingViewModel @Inject constructor(
         _input.update { it.copy(quantityText = text.filter { c -> c.isDigit() }.take(9)) }
     fun onEntryDateChange(date: LocalDate) = _input.update { it.copy(entryDate = date) }
 
-    /** 새 보유 종목 추가. */
+    /** 새 보유 종목 추가(현재 선택 계좌에). */
     fun addHolding() {
         val s = _input.value
         val buy = s.buyPriceText.filter { it.isDigit() }.toLongOrNull() ?: return
@@ -88,6 +166,7 @@ class HoldingViewModel @Inject constructor(
             repository.save(
                 Holding(
                     id = UUID.randomUUID().toString(),
+                    accountId = _selectedAccountId.value,
                     ticker = s.ticker.trim(),
                     buyPrice = buy,
                     currentPrice = current,
@@ -108,9 +187,9 @@ class HoldingViewModel @Inject constructor(
     }
 
     /**
-     * 매도 — 보유에서 빼고 '매도 내역'으로 이관한다.
+     * 매도 — 보유에서 빼고 '매도 내역'으로 이관한다(같은 계좌 유지).
      *
-     * 매도가는 매도 시점 현재가. (mood·note는 화면 호환을 위해 받되 이 앱에선 사용하지 않음.)
+     * (mood·note는 화면 호환을 위해 받되 이 앱에선 사용하지 않음.)
      */
     fun sell(holding: Holding, mood: TradeMood = TradeMood.FLAT, note: String = "") {
         viewModelScope.launch {

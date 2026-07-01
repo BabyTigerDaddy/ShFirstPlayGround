@@ -13,6 +13,8 @@ import java.time.LocalDateTime
 data class Holding(
     /** 안정 ID — 같은 종목 여러 번 담을 수 있어 날짜/종목이 아닌 UUID. */
     val id: String,
+    /** 소속 계좌 id. */
+    val accountId: String = Account.DEFAULT_ID,
     /** 종목명. */
     val ticker: String,
     /** 매수가(원, 1주). */

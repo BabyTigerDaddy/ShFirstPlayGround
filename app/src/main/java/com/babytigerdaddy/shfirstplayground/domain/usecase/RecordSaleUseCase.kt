@@ -22,6 +22,7 @@ class RecordSaleUseCase @Inject constructor(
         soldRepository.save(
             SoldRecord(
                 id = holding.id,
+                accountId = holding.accountId,
                 ticker = holding.ticker,
                 buyPrice = holding.buyPrice,
                 sellPrice = holding.currentPrice,

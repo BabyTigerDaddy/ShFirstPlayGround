@@ -1,5 +1,6 @@
 package com.babytigerdaddy.shfirstplayground.data.local.database
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldRecord
@@ -10,6 +11,8 @@ import java.time.LocalDateTime
 @Entity(tableName = "sold_record")
 data class SoldRecordEntity(
     @PrimaryKey val id: String,
+    // defaultValue = Account.DEFAULT_ID('default') — v6→v7 마이그레이션 ALTER 문과 일치.
+    @ColumnInfo(defaultValue = "'default'") val accountId: String,
     val ticker: String,
     val buyPrice: Long,
     val sellPrice: Long,
@@ -20,6 +23,7 @@ data class SoldRecordEntity(
 ) {
     fun toDomain(): SoldRecord = SoldRecord(
         id = id,
+        accountId = accountId,
         ticker = ticker,
         buyPrice = buyPrice,
         sellPrice = sellPrice,
@@ -32,6 +36,7 @@ data class SoldRecordEntity(
     companion object {
         fun fromDomain(r: SoldRecord): SoldRecordEntity = SoldRecordEntity(
             id = r.id,
+            accountId = r.accountId,
             ticker = r.ticker,
             buyPrice = r.buyPrice,
             sellPrice = r.sellPrice,

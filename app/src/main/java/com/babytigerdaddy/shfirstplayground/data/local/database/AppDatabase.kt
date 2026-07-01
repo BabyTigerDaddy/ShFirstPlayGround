@@ -13,6 +13,8 @@ import androidx.room.TypeConverters
  * v3 → v4: TradeJournal에 tickers(종목) 컬럼 + MonthlyGoalEntity 추가 (상용화 확장).
  * v4 → v5: HoldingEntity 추가 (보유 종목 추적 — 와이프 요청).
  * v5 → v6: SoldRecordEntity 추가 (매도 내역 — 보유노트).
+ * v6 → v7: AccountEntity + holding/sold_record에 accountId (다중계좌).
+ *          기존 데이터 보존 마이그레이션([MIGRATION_6_7]) — 기본 계좌로 이어붙임.
  */
 @Database(
     entities = [
@@ -22,8 +24,9 @@ import androidx.room.TypeConverters
         MonthlyGoalEntity::class,
         HoldingEntity::class,
         SoldRecordEntity::class,
+        AccountEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -34,4 +37,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun monthlyGoalDao(): MonthlyGoalDao
     abstract fun holdingDao(): HoldingDao
     abstract fun soldRecordDao(): SoldRecordDao
+    abstract fun accountDao(): AccountDao
 }

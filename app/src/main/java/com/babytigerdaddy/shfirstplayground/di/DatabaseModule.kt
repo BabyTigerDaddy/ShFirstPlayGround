@@ -2,10 +2,12 @@ package com.babytigerdaddy.shfirstplayground.di
 
 import android.content.Context
 import androidx.room.Room
+import com.babytigerdaddy.shfirstplayground.data.local.database.AccountDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.AppDatabase
 import com.babytigerdaddy.shfirstplayground.data.local.database.GrowthMilestoneDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.HappyLogDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.HoldingDao
+import com.babytigerdaddy.shfirstplayground.data.local.database.MIGRATION_6_7
 import com.babytigerdaddy.shfirstplayground.data.local.database.MonthlyGoalDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.SoldRecordDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.TradeJournalDao
@@ -27,7 +29,9 @@ object DatabaseModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, DB_NAME)
-            .fallbackToDestructiveMigration() // 미배포 단계라 schema 변경 시 데이터 wipe OK
+            // v6→v7은 다중계좌 — 기존 데이터 보존 마이그레이션. 그 외 버전은 미배포라 wipe OK.
+            .addMigrations(MIGRATION_6_7)
+            .fallbackToDestructiveMigration()
             .build()
 
     @Provides
@@ -52,6 +56,10 @@ object DatabaseModule {
     @Provides
     fun provideSoldRecordDao(database: AppDatabase): SoldRecordDao =
         database.soldRecordDao()
+
+    @Provides
+    fun provideAccountDao(database: AppDatabase): AccountDao =
+        database.accountDao()
 
     private const val DB_NAME = "shfirstplayground.db"
 }
