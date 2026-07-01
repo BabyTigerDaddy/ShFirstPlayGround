@@ -45,3 +45,17 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
         )
     }
 }
+
+/**
+ * v8 → v9: 종목 마스터(stock_master) 테이블 추가 — 이름→코드 검색용.
+ * 새 테이블만 만들 뿐 보유·매도 데이터는 건드리지 않는다(데이터 보존).
+ */
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `stock_master` (" +
+                "`code` TEXT NOT NULL, `name` TEXT NOT NULL, `market` TEXT NOT NULL, " +
+                "PRIMARY KEY(`code`))",
+        )
+    }
+}

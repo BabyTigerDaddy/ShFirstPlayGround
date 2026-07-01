@@ -16,6 +16,7 @@ import androidx.room.TypeConverters
  * v6 → v7: AccountEntity + holding/sold_record에 accountId (다중계좌).
  *          기존 데이터 보존 마이그레이션([MIGRATION_6_7]) — 기본 계좌로 이어붙임.
  * v7 → v8: holding에 code(종목코드) 컬럼 — 시세 API 조회용([MIGRATION_7_8], 데이터 보존).
+ * v8 → v9: StockMasterEntity(종목 마스터) 추가 — 이름→코드 검색용([MIGRATION_8_9], 데이터 보존).
  */
 @Database(
     entities = [
@@ -26,8 +27,9 @@ import androidx.room.TypeConverters
         HoldingEntity::class,
         SoldRecordEntity::class,
         AccountEntity::class,
+        StockMasterEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -39,4 +41,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun holdingDao(): HoldingDao
     abstract fun soldRecordDao(): SoldRecordDao
     abstract fun accountDao(): AccountDao
+    abstract fun stockMasterDao(): StockMasterDao
 }

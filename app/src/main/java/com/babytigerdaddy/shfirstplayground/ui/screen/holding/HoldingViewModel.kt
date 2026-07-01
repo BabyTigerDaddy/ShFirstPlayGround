@@ -6,11 +6,14 @@ import com.babytigerdaddy.shfirstplayground.domain.model.Account
 import com.babytigerdaddy.shfirstplayground.domain.model.AssetAllocation
 import com.babytigerdaddy.shfirstplayground.domain.model.Holding
 import com.babytigerdaddy.shfirstplayground.domain.model.HoldingSummary
+import com.babytigerdaddy.shfirstplayground.data.repository.StockSeed
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
+import com.babytigerdaddy.shfirstplayground.domain.model.StockMaster
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeMood
 import com.babytigerdaddy.shfirstplayground.domain.repository.AccountRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.SoldRecordRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.StockMasterRepository
 import com.babytigerdaddy.shfirstplayground.domain.usecase.AllocationCalculator
 import com.babytigerdaddy.shfirstplayground.domain.usecase.HoldingCalculator
 import com.babytigerdaddy.shfirstplayground.domain.usecase.RecordSaleUseCase
@@ -54,6 +57,7 @@ class HoldingViewModel @Inject constructor(
     private val repository: HoldingRepository,
     private val soldRepository: SoldRecordRepository,
     private val accountRepository: AccountRepository,
+    private val stockMasterRepository: StockMasterRepository,
     private val recordSale: RecordSaleUseCase,
 ) : ViewModel() {
 
@@ -68,9 +72,13 @@ class HoldingViewModel @Inject constructor(
     val accounts: StateFlow<List<Account>> = accountRepository.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    /** 종목 검색 후보(자동완성). */
+    private val _stockCandidates = MutableStateFlow<List<StockMaster>>(emptyList())
+    val stockCandidates: StateFlow<List<StockMaster>> = _stockCandidates.asStateFlow()
+
     init {
-        // 다중계좌 업데이트 첫 실행: 계좌가 하나도 없으면 기본 계좌 생성(기존 데이터가 여기로 이어붙음).
         viewModelScope.launch {
+            // 다중계좌 첫 실행: 계좌 없으면 기본 계좌 생성(기존 데이터가 여기로 이어붙음).
             if (accountRepository.count() == 0) {
                 accountRepository.save(
                     Account(
@@ -81,7 +89,25 @@ class HoldingViewModel @Inject constructor(
                     ),
                 )
             }
+            // 종목 마스터 비어있으면 대표 종목 시드(전체 목록은 추후 마스터 파일로 대체).
+            if (stockMasterRepository.count() == 0) {
+                stockMasterRepository.saveAll(StockSeed.list)
+            }
         }
+    }
+
+    /** 종목명/코드로 검색해 후보 갱신 — 종목 추가 시 이름 입력마다 호출. */
+    fun searchStock(query: String) {
+        viewModelScope.launch {
+            _stockCandidates.value =
+                if (query.isBlank()) emptyList() else stockMasterRepository.search(query)
+        }
+    }
+
+    /** 후보에서 종목 선택 — 이름·코드 자동 채움, 후보 닫음. */
+    fun selectStock(stock: StockMaster) {
+        _input.update { it.copy(ticker = stock.name, codeText = stock.code) }
+        _stockCandidates.value = emptyList()
     }
 
     /** 선택 계좌의 보유 종목만('전체' 선택 시 모든 계좌 합산). */
