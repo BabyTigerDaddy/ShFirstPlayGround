@@ -48,11 +48,9 @@ data class HoldingInputUiState(
     val entryDate: LocalDate = LocalDate.now(),
     val saving: Boolean = false,
 ) {
+    // 현재가는 자동 시세로 채워지므로 입력 필수 아님(비면 매수가로 시작 → 0%, 갱신 시 실제값).
     val canSave: Boolean
-        get() = ticker.isNotBlank() &&
-            buyPriceText.any { it.isDigit() } &&
-            currentPriceText.any { it.isDigit() } &&
-            !saving
+        get() = ticker.isNotBlank() && buyPriceText.any { it.isDigit() } && !saving
 }
 
 /** 종목 목록 동기화 상태. */
@@ -264,7 +262,8 @@ class HoldingViewModel @Inject constructor(
     fun addHolding() {
         val s = _input.value
         val buy = s.buyPriceText.filter { it.isDigit() }.toLongOrNull() ?: return
-        val current = s.currentPriceText.filter { it.isDigit() }.toLongOrNull() ?: return
+        // 현재가 비면 매수가로 시작(0%) — 자동 시세가 곧 진짜 값으로 덮음.
+        val current = s.currentPriceText.filter { it.isDigit() }.toLongOrNull() ?: buy
         val qty = s.quantityText.filter { it.isDigit() }.toIntOrNull()?.coerceAtLeast(1) ?: 1
         viewModelScope.launch {
             _input.update { it.copy(saving = true) }
