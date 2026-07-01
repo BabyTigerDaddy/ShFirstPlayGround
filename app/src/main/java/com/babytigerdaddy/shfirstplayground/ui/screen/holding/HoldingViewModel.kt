@@ -2,12 +2,14 @@ package com.babytigerdaddy.shfirstplayground.ui.screen.holding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.babytigerdaddy.shfirstplayground.domain.model.AssetAllocation
 import com.babytigerdaddy.shfirstplayground.domain.model.Holding
 import com.babytigerdaddy.shfirstplayground.domain.model.HoldingSummary
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeMood
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.SoldRecordRepository
+import com.babytigerdaddy.shfirstplayground.domain.usecase.AllocationCalculator
 import com.babytigerdaddy.shfirstplayground.domain.usecase.HoldingCalculator
 import com.babytigerdaddy.shfirstplayground.domain.usecase.RecordSaleUseCase
 import com.babytigerdaddy.shfirstplayground.domain.usecase.SoldRecordCalculator
@@ -60,6 +62,11 @@ class HoldingViewModel @Inject constructor(
     val soldHistory: StateFlow<SoldHistorySummary> = soldRepository.observeAll()
         .map(SoldRecordCalculator::compute)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SoldHistorySummary.EMPTY)
+
+    /** 자산 배분 — 종목별 비중 + 집중 종목. '배분' 탭 원 그래프용. */
+    val allocation: StateFlow<AssetAllocation> = repository.observeAll()
+        .map(AllocationCalculator::compute)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssetAllocation.EMPTY)
 
     fun onTickerChange(text: String) = _input.update { it.copy(ticker = text) }
     fun onBuyPriceChange(text: String) =
