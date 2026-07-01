@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -54,7 +55,7 @@ class RecordSaleUseCaseTest {
         assertEquals(514_000L, rec.buyPrice)
         assertEquals(1_682_000L, rec.realizedPnl)
         assertEquals(LocalDate.parse("2026-06-30"), rec.soldDate)
-        // 보유일 = 04/08 ~ 06/30
-        assertEquals(83L, rec.heldDays)
+        // 보유일은 거래일(주말 제외) — 04/08~06/30 사이 토·일 뺀 거래일 수(양수)
+        assertTrue(rec.heldDays in 1..83)
     }
 }

@@ -2,7 +2,6 @@ package com.babytigerdaddy.shfirstplayground.domain.model
 
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 /**
  * 보유 종목 한 단위 — 아직 안 팔고 들고 있는 종목의 평가손익 추적.
@@ -39,9 +38,9 @@ data class Holding(
     /** 매수금액(원) = 매수가 × 수량. */
     val costAmount: Long get() = buyPrice * quantity
 
-    /** 보유일 — 편입일부터 [asOf]까지 일수(최소 0). */
+    /** 보유일 — 편입일부터 [asOf]까지 거래일(주말 토·일 제외). 편입 당일은 0. */
     fun holdingDays(asOf: LocalDate): Long =
-        ChronoUnit.DAYS.between(entryDate, asOf).coerceAtLeast(0)
+        BusinessDays.between(entryDate, asOf)
 }
 
 /**

@@ -2,7 +2,6 @@ package com.babytigerdaddy.shfirstplayground.domain.model
 
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 /**
  * 매도 내역 한 단위 — 보유 종목을 팔았을 때 남는 기록.
@@ -32,8 +31,8 @@ data class SoldRecord(
     /** 매수금액(원). */
     val costAmount: Long get() = buyPrice * quantity
 
-    /** 보유했던 일수(편입~매도, 최소 0). */
-    val heldDays: Long get() = ChronoUnit.DAYS.between(entryDate, soldDate).coerceAtLeast(0)
+    /** 보유했던 거래일(편입~매도, 주말 토·일 제외). */
+    val heldDays: Long get() = BusinessDays.between(entryDate, soldDate)
 
     val isWin: Boolean get() = realizedPnl > 0
 }

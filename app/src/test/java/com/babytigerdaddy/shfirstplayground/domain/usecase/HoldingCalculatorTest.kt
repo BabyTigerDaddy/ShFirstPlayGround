@@ -57,12 +57,12 @@ class HoldingCalculatorTest {
     }
 
     @Test
-    fun `개별 수익률·보유일 계산`() {
+    fun `개별 수익률·평가손익 계산`() {
         val h = holding("삼성전기", buy = 514_000, current = 2_196_000, qty = 1)
         // (2,196,000 - 514,000) / 514,000 ≈ 3.272
         assertTrue(h.returnRate > 3.2 && h.returnRate < 3.3)
         assertEquals(1_682_000L, h.evalPnl)
-        // 편입 2026-06-01 기준 30일 뒤 = 30일
-        assertEquals(30L, h.holdingDays(LocalDate.parse("2026-07-01")))
+        // 보유일은 거래일 기준 — 정확히 1주 뒤면 주말 빼고 5거래일(요일 무관)
+        assertEquals(5L, h.holdingDays(h.entryDate.plusWeeks(1)))
     }
 }
