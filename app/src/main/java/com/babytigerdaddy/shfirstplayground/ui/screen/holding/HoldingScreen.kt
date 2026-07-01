@@ -25,7 +25,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -52,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.babytigerdaddy.shfirstplayground.domain.model.Account
 import com.babytigerdaddy.shfirstplayground.domain.model.AllocationSlice
 import com.babytigerdaddy.shfirstplayground.domain.model.AssetAllocation
 import com.babytigerdaddy.shfirstplayground.domain.model.DailyPnlPoint
@@ -86,12 +90,17 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     val summary by viewModel.summary.collectAsStateWithLifecycle()
     val sold by viewModel.soldHistory.collectAsStateWithLifecycle()
     val allocation by viewModel.allocation.collectAsStateWithLifecycle()
-    var tab by remember { mutableIntStateOf(0) } // 0=보유, 1=판내역
+    val accounts by viewModel.accounts.collectAsStateWithLifecycle()
+    val selectedAccountId by viewModel.selectedAccountId.collectAsStateWithLifecycle()
+    var tab by remember { mutableIntStateOf(0) } // 0=보유, 1=배분, 2=판내역
     var showAdd by remember { mutableStateOf(false) }
     var sellTarget by remember { mutableStateOf<Holding?>(null) }
     var editTarget by remember { mutableStateOf<Holding?>(null) }
     var delHolding by remember { mutableStateOf<Holding?>(null) }
     var delSold by remember { mutableStateOf<SoldRecord?>(null) }
+    var showAddAccount by remember { mutableStateOf(false) }
+    var showRenameAccount by remember { mutableStateOf(false) }
+    var showDeleteAccount by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(HoldBg)) {
         LazyColumn(
@@ -100,7 +109,17 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
-                Text(text = "보유노트", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = HoldInk)
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(text = "보유노트", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = HoldInk)
+                    AccountSelector(
+                        accounts = accounts,
+                        selectedId = selectedAccountId,
+                        onSelect = viewModel::selectAccount,
+                        onAddClick = { showAddAccount = true },
+                        onRenameClick = { showRenameAccount = true },
+                        onDeleteClick = { showDeleteAccount = true },
+                    )
+                }
             }
             item { SegToggle(tab = tab, onSelect = { tab = it }) }
 
@@ -138,6 +157,10 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     delSold?.let { r ->
         DeleteConfirmDialog(label = "${r.ticker} 매도 내역", onConfirm = { viewModel.deleteSoldRecord(r.id); delSold = null }, onDismiss = { delSold = null })
     }
+    val curAccount = accounts.firstOrNull { it.id == selectedAccountId }
+    if (showAddAccount) AccountNameDialog("새 계좌", "", onConfirm = { viewModel.addAccount(it); showAddAccount = false }, onDismiss = { showAddAccount = false })
+    if (showRenameAccount) AccountNameDialog("계좌 이름 변경", curAccount?.name ?: "", onConfirm = { viewModel.renameAccount(selectedAccountId, it); showRenameAccount = false }, onDismiss = { showRenameAccount = false })
+    if (showDeleteAccount) DeleteConfirmDialog(label = "'${curAccount?.name ?: "계좌"}' 계좌 (종목·판내역 포함)", onConfirm = { viewModel.deleteAccount(selectedAccountId); showDeleteAccount = false }, onDismiss = { showDeleteAccount = false })
 }
 
 @Composable
@@ -158,6 +181,74 @@ private fun SegToggle(tab: Int, onSelect: (Int) -> Unit) {
             }
         }
     }
+}
+
+// ---------- 계좌 선택 ----------
+@Composable
+private fun AccountSelector(
+    accounts: List<Account>,
+    selectedId: String,
+    onSelect: (String) -> Unit,
+    onAddClick: () -> Unit,
+    onRenameClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val curIndex = accounts.indexOfFirst { it.id == selectedId }.coerceAtLeast(0)
+    val cur = accounts.getOrNull(curIndex)
+    Box {
+        Row(
+            modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(HoldCard).clickable { expanded = true }.padding(horizontal = 12.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(AllocColors[curIndex % AllocColors.size]))
+            Text(cur?.name ?: "내 계좌", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = HoldInk)
+            Text("▾", fontSize = 13.sp, color = HoldSub)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            accounts.forEachIndexed { i, a ->
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(AllocColors[i % AllocColors.size]))
+                            Text(a.name, color = HoldInk, fontWeight = if (a.id == selectedId) FontWeight.Bold else FontWeight.Normal)
+                            if (a.id == selectedId) Text("✓", color = LossBlue)
+                        }
+                    },
+                    onClick = { onSelect(a.id); expanded = false },
+                )
+            }
+            HorizontalDivider()
+            DropdownMenuItem(text = { Text("+ 새 계좌 추가", color = LossBlue) }, onClick = { expanded = false; onAddClick() })
+            DropdownMenuItem(text = { Text("현재 계좌 이름 변경", color = HoldInk) }, onClick = { expanded = false; onRenameClick() })
+            if (accounts.size > 1) DropdownMenuItem(text = { Text("현재 계좌 삭제", color = ProfitRed) }, onClick = { expanded = false; onDeleteClick() })
+        }
+    }
+}
+
+@Composable
+private fun AccountNameDialog(title: String, initial: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var text by remember { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = HoldCard,
+        titleContentColor = HoldInk,
+        textContentColor = HoldSub,
+        title = { Text(title, fontWeight = FontWeight.Bold, color = HoldInk) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it.take(20) },
+                singleLine = true,
+                label = { Text("계좌 이름") },
+                placeholder = { Text("가치투자 / 단타 / 내 계좌") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = { TextButton(onClick = { if (text.isNotBlank()) onConfirm(text.trim()) }, enabled = text.isNotBlank()) { Text("저장", color = LossBlue) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = HoldSub) } },
+    )
 }
 
 // ---------- 보유 중 (표) ----------
