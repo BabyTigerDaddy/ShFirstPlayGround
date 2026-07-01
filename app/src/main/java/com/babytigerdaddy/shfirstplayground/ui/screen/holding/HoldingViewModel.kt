@@ -284,6 +284,10 @@ class HoldingViewModel @Inject constructor(
                 ),
             )
             _input.value = HoldingInputUiState()
+            // 저장 커밋 후 시세 1회 자동 갱신 — 저장 전에 돌면 방금 넣은 종목이 갱신 대상에서 빠진다.
+            // 진행 중 갱신이 있으면 끝나길 기다렸다 다시 돈다(중복 방지 가드에 안 먹히게).
+            _priceRefresh.first { !it.loading }
+            refreshPrices()
         }
     }
 
@@ -301,6 +305,9 @@ class HoldingViewModel @Inject constructor(
     fun updateHolding(edited: Holding) {
         viewModelScope.launch {
             repository.save(edited)
+            // 편집 커밋 후 시세 1회 자동 갱신 — 종목코드가 바뀐 경우 새 코드 기준으로 받아온다.
+            _priceRefresh.first { !it.loading }
+            refreshPrices()
         }
     }
 
