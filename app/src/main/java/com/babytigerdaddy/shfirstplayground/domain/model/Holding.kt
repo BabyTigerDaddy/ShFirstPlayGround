@@ -40,6 +40,16 @@ data class Holding(
     /** 매수금액(원) = 매수가 × 수량. */
     val costAmount: Long get() = buyPrice * quantity
 
+    /** 지금 팔면 나가는 예상 세금·수수료(원). */
+    val estimatedFee: Long get() = TradeTax.totalCost(costAmount, evalAmount)
+
+    /** 세후 평가손익(원) — 지금 팔면 세금·수수료 떼고 실제로 남는 손익. */
+    val netEvalPnl: Long get() = evalPnl - estimatedFee
+
+    /** 세후 수익률 — netEvalPnl / 매수금액. 매수가 0이면 0. */
+    val netReturnRate: Double
+        get() = if (costAmount <= 0) 0.0 else netEvalPnl.toDouble() / costAmount
+
     /** 보유일 — 편입일부터 [asOf]까지 거래일(주말 토·일 제외). 편입 당일은 0. */
     fun holdingDays(asOf: LocalDate): Long =
         BusinessDays.between(entryDate, asOf)

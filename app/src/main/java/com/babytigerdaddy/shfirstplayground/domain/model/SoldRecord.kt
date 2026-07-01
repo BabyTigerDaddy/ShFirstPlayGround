@@ -33,6 +33,19 @@ data class SoldRecord(
     /** 매수금액(원). */
     val costAmount: Long get() = buyPrice * quantity
 
+    /** 매도금액(원) = 매도가 × 수량. */
+    val proceeds: Long get() = sellPrice * quantity
+
+    /** 실제 낸 세금·수수료(원). */
+    val fee: Long get() = TradeTax.totalCost(costAmount, proceeds)
+
+    /** 세후 실현손익(원) — 세금·수수료 떼고 실제로 남은 손익. */
+    val netRealizedPnl: Long get() = realizedPnl - fee
+
+    /** 세후 수익률 — netRealizedPnl / 매수금액. 매수가 0이면 0. */
+    val netReturnRate: Double
+        get() = if (costAmount <= 0) 0.0 else netRealizedPnl.toDouble() / costAmount
+
     /** 보유했던 거래일(편입~매도, 주말 토·일 제외). */
     val heldDays: Long get() = BusinessDays.between(entryDate, soldDate)
 
