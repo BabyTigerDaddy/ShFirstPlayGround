@@ -95,6 +95,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
     val selectedAccountId by viewModel.selectedAccountId.collectAsStateWithLifecycle()
     val priceRefresh by viewModel.priceRefresh.collectAsStateWithLifecycle()
+    val masterSync by viewModel.masterSync.collectAsStateWithLifecycle()
     var tab by remember { mutableIntStateOf(0) } // 0=보유, 1=배분, 2=판내역
     var showAdd by remember { mutableStateOf(false) }
     var sellTarget by remember { mutableStateOf<Holding?>(null) }
@@ -126,6 +127,9 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                         onDeleteClick = { showDeleteAccount = true },
                     )
                 }
+            }
+            if ((masterSync.loading && masterSync.firstLoad) || masterSync.updatedCount > 0 || masterSync.failed) {
+                item { MasterSyncBar(masterSync) }
             }
             item { RefreshBar(priceRefresh, onRefresh = { viewModel.refreshPrices() }) }
             item { SegToggle(tab = tab, onSelect = { tab = it }) }
@@ -191,6 +195,21 @@ private fun SegToggle(tab: Int, onSelect: (Int) -> Unit) {
             ) {
                 Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (sel) HoldInk else HoldSub)
             }
+        }
+    }
+}
+
+// ---------- 종목 목록 동기화 바 ----------
+@Composable
+private fun MasterSyncBar(state: MasterSyncState) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        when {
+            state.loading && state.firstLoad -> {
+                CircularProgressIndicator(modifier = Modifier.size(13.dp), strokeWidth = 2.dp, color = HoldSub)
+                Text("종목 목록 준비 중... (처음 한 번)", fontSize = 12.sp, color = HoldSub)
+            }
+            state.failed -> Text("⚠ 종목 목록 갱신 실패 · 기본 종목으로 검색", fontSize = 12.sp, color = Color(0xFFC8881A))
+            state.updatedCount > 0 -> Text("종목 목록 최신 · ${state.updatedCount}종목 반영", fontSize = 12.sp, color = Color(0xFF15883F))
         }
     }
 }
