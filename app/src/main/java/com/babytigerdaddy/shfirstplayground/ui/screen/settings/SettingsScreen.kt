@@ -17,13 +17,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -150,10 +156,14 @@ private fun SectionLabel(text: String) {
 
 // ---------- 계정 (로그인은 '기록 지키고 싶은 사람'이 켜는 선택 옵션) ----------
 @Composable
-private fun AccountSection(authViewModel: AuthViewModel = hiltViewModel()) {
+private fun AccountSection(
+    authViewModel: AuthViewModel = hiltViewModel(),
+    backupViewModel: BackupViewModel = hiltViewModel(),
+) {
     val c = LocalHoldingColors.current
     val context = LocalContext.current
     val user = authViewModel.user
+    LaunchedEffect(user) { if (user != null) backupViewModel.refreshCloudState() }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SectionLabel("계정")
         if (user == null) {
@@ -178,12 +188,72 @@ private fun AccountSection(authViewModel: AuthViewModel = hiltViewModel()) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(user.displayName ?: "로그인됨", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = c.ink)
                     if (!user.email.isNullOrBlank()) Text(user.email!!, fontSize = 12.sp, color = c.faint)
-                    Text("기록이 이 계정에 백업돼요", fontSize = 11.sp, color = c.point)
                 }
                 OutlinedButton(onClick = { authViewModel.signOut() }) { Text("로그아웃", color = c.sub) }
             }
+            BackupSection(backupViewModel)
         }
     }
+}
+
+// ---------- 클라우드 백업 (로컬 우선 · 덮어쓰기는 확인 뒤에만) ----------
+@Composable
+private fun BackupSection(vm: BackupViewModel) {
+    val c = LocalHoldingColors.current
+    var confirmRestore by remember { mutableStateOf(false) }
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)
+            .background(c.card)
+            .border(BorderStroke(1.dp, c.line), MaterialTheme.shapes.medium)
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("클라우드 백업", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = c.ink)
+                Text(
+                    if (vm.enabled) lastBackupLabel(vm.lastBackupAt) else "켜면 이 폰 기록이 계정에 저장돼요",
+                    fontSize = 12.sp, color = c.faint,
+                )
+            }
+            if (vm.syncing) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = c.point)
+            } else {
+                Switch(checked = vm.enabled, onCheckedChange = { vm.toggle(it) })
+            }
+        }
+        if (vm.enabled && !vm.syncing) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedButton(onClick = { vm.backupNow() }) { Text("지금 백업", color = c.point) }
+                if (vm.hasCloudBackup) {
+                    OutlinedButton(onClick = { confirmRestore = true }) { Text("클라우드에서 불러오기", color = c.sub) }
+                }
+            }
+        }
+        vm.message?.let { Text(it, fontSize = 12.sp, color = c.sub) }
+    }
+    if (confirmRestore) {
+        AlertDialog(
+            onDismissRequest = { confirmRestore = false },
+            containerColor = Color.White,
+            titleContentColor = Color(0xFF16202E),
+            textContentColor = Color(0xFF4A5769),
+            title = { Text("클라우드에서 불러올까요?", fontWeight = FontWeight.Bold) },
+            text = { Text("지금 폰에 있는 종목·판 내역은 클라우드 백업 내용으로 덮어써져요. 되돌릴 수 없어요.") },
+            confirmButton = {
+                TextButton(onClick = { confirmRestore = false; vm.restoreFromCloud() }) {
+                    Text("덮어쓰고 불러오기", color = ProfitRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = { TextButton(onClick = { confirmRestore = false }) { Text("취소", color = Color(0xFF4A5769)) } },
+        )
+    }
+}
+
+private fun lastBackupLabel(millis: Long): String {
+    if (millis <= 0L) return "아직 백업 전이에요"
+    val t = java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+    return "마지막 백업 · ${t.format(java.time.format.DateTimeFormatter.ofPattern("M.d HH:mm"))}"
 }
 
 @Composable
