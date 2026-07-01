@@ -134,8 +134,8 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                     if (summary.holdings.isEmpty()) {
                         item { Text(text = "들고 있는 종목을 추가하면\n표로 한눈에 보여요.", fontSize = 14.sp, color = HoldSub, modifier = Modifier.padding(top = 6.dp)) }
                     } else {
-                        item { Text(text = "행을 탭하면 매도 · 현재가 ✎ 탭하면 수정 · 길게 누르면 삭제", fontSize = 11.sp, color = HoldFaint) }
-                        item { HoldingTable(summary.holdings, onSell = { sellTarget = it }, onEditPrice = { editTarget = it }, onDelete = { delHolding = it }) }
+                        item { Text(text = "행을 탭하면 편집(종목명·수량·가격) · 길게 누르면 삭제", fontSize = 11.sp, color = HoldFaint) }
+                        item { HoldingTable(summary.holdings, onEdit = { editTarget = it }, onDelete = { delHolding = it }) }
                     }
                 }
                 1 -> allocationSection(allocation)
@@ -149,7 +149,12 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
         SellDialog(holding = h, onConfirm = { viewModel.sell(h); sellTarget = null }, onDismiss = { sellTarget = null })
     }
     editTarget?.let { h ->
-        EditPriceDialog(holding = h, onConfirm = { p -> viewModel.updateCurrentPrice(h, p); editTarget = null }, onDismiss = { editTarget = null })
+        EditHoldingDialog(
+            holding = h,
+            onSave = { edited -> viewModel.updateHolding(edited); editTarget = null },
+            onSellClick = { editTarget = null; sellTarget = h },
+            onDismiss = { editTarget = null },
+        )
     }
     delHolding?.let { h ->
         DeleteConfirmDialog(label = "${h.ticker} 보유", onConfirm = { viewModel.remove(h.id); delHolding = null }, onDismiss = { delHolding = null })
@@ -270,12 +275,12 @@ private fun AccountNameDialog(title: String, initial: String, onConfirm: (String
 // ---------- 보유 중 (표) ----------
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun HoldingTable(holdings: List<Holding>, onSell: (Holding) -> Unit, onEditPrice: (Holding) -> Unit, onDelete: (Holding) -> Unit) {
+private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onDelete: (Holding) -> Unit) {
     Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = HoldCard), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
         Column {
             // 헤더
             Row(modifier = Modifier.fillMaxWidth().background(Color(0xFFF3F5F8)).padding(horizontal = 14.dp, vertical = 10.dp)) {
-                HCell("종목", 1.5f); HCell("현재가", 1.2f, TextAlign.End); HCell("수익률", 1.1f, TextAlign.End); HCell("보유", 0.9f, TextAlign.End)
+                HCell("종목", 1.3f); HCell("매수가", 1.15f, TextAlign.End); HCell("현재가", 1.2f, TextAlign.End); HCell("수익률", 1.0f, TextAlign.End); HCell("보유", 0.85f, TextAlign.End)
             }
             holdings.forEachIndexed { idx, h ->
                 if (idx > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(HoldLine))
@@ -283,16 +288,15 @@ private fun HoldingTable(holdings: List<Holding>, onSell: (Holding) -> Unit, onE
                 val days = h.holdingDays(LocalDate.now())
                 Row(
                     modifier = Modifier.fillMaxWidth()
-                        .combinedClickable(onClick = { onSell(h) }, onLongClick = { onDelete(h) })
+                        .combinedClickable(onClick = { onEdit(h) }, onLongClick = { onDelete(h) })
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(Modifier.weight(1.5f)) { Text(h.ticker, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = HoldInk) }
-                    Box(Modifier.weight(1.2f).clip(RoundedCornerShape(6.dp)).clickable { onEditPrice(h) }.padding(vertical = 2.dp)) {
-                        Text(comma(h.currentPrice) + " ✎", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = LossBlue, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth())
-                    }
-                    Box(Modifier.weight(1.1f)) { Text("${signed(h.returnRate)}%", fontSize = 13.5.sp, fontWeight = FontWeight.Bold, color = tone, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) }
-                    Box(Modifier.weight(0.9f), contentAlignment = Alignment.CenterEnd) {
+                    Box(Modifier.weight(1.3f)) { Text(h.ticker, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = HoldInk) }
+                    Box(Modifier.weight(1.15f)) { Text(manwon(h.buyPrice), fontSize = 12.5.sp, color = HoldSub, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) }
+                    Box(Modifier.weight(1.2f)) { Text(manwon(h.currentPrice), fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = HoldInk, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) }
+                    Box(Modifier.weight(1.0f)) { Text("${signed(h.returnRate)}%", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = tone, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) }
+                    Box(Modifier.weight(0.85f), contentAlignment = Alignment.CenterEnd) {
                         val (bg, fg, lab) = if (days <= 0L) Triple(EntryBadgeBg, EntryBadgeFg, "진입") else Triple(DaysBadgeBg, DaysBadgeFg, "${days}일")
                         Box(Modifier.clip(RoundedCornerShape(7.dp)).background(bg).padding(horizontal = 7.dp, vertical = 3.dp)) {
                             Text(lab, fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = fg)
@@ -567,32 +571,57 @@ private fun DeleteConfirmDialog(label: String, onConfirm: () -> Unit, onDismiss:
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EditPriceDialog(holding: Holding, onConfirm: (Long) -> Unit, onDismiss: () -> Unit) {
-    var text by remember { mutableStateOf(holding.currentPrice.toString()) }
+private fun EditHoldingDialog(holding: Holding, onSave: (Holding) -> Unit, onSellClick: () -> Unit, onDismiss: () -> Unit) {
+    var name by remember { mutableStateOf(holding.ticker) }
+    var buy by remember { mutableStateOf(holding.buyPrice.toString()) }
+    var current by remember { mutableStateOf(holding.currentPrice.toString()) }
+    var qty by remember { mutableStateOf(holding.quantity.toString()) }
+    var entryDate by remember { mutableStateOf(holding.entryDate) }
+    var showDate by remember { mutableStateOf(false) }
+    val canSave = name.isNotBlank() && buy.any { it.isDigit() } && current.any { it.isDigit() }
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = HoldCard,
         titleContentColor = HoldInk,
         textContentColor = HoldSub,
-        title = { Text("${holding.ticker} 현재가 수정", fontWeight = FontWeight.Bold, color = HoldInk) },
+        title = { Text("종목 편집", fontWeight = FontWeight.Bold, color = HoldInk) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("매수가 ${comma(holding.buyPrice)}원 · 장 열릴 때마다 현재가만 고치면 수익률이 다시 계산돼요.", fontSize = 13.sp, color = HoldSub)
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it.filter { c -> c.isDigit() }.take(12) },
-                    singleLine = true,
-                    label = { Text("현재가") },
-                    suffix = { Text("원") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                OutlinedTextField(name, { name = it.take(20) }, singleLine = true, label = { Text("종목명") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(buy, { buy = it.filter { c -> c.isDigit() }.take(12) }, singleLine = true, label = { Text("매수가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(current, { current = it.filter { c -> c.isDigit() }.take(12) }, singleLine = true, label = { Text("현재가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(qty, { qty = it.filter { c -> c.isDigit() }.take(9) }, singleLine = true, label = { Text("수량") }, suffix = { Text("주") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                OutlinedButton(onClick = { showDate = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                    Text("편입일 · ${entryDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))}", color = HoldInk)
+                }
+                OutlinedButton(onClick = onSellClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                    Text("이 종목 매도 (판 내역으로)", color = LossBlue)
+                }
             }
         },
-        confirmButton = { TextButton(onClick = { text.toLongOrNull()?.let(onConfirm) }, enabled = text.any { it.isDigit() }) { Text("저장", color = LossBlue) } },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val b = buy.filter { it.isDigit() }.toLongOrNull() ?: return@TextButton
+                    val c = current.filter { it.isDigit() }.toLongOrNull() ?: return@TextButton
+                    val q = qty.filter { it.isDigit() }.toIntOrNull()?.coerceAtLeast(1) ?: 1
+                    onSave(holding.copy(ticker = name.trim(), buyPrice = b, currentPrice = c, quantity = q, entryDate = entryDate))
+                },
+                enabled = canSave,
+            ) { Text("저장", color = LossBlue) }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = HoldSub) } },
     )
+    if (showDate) {
+        val state = rememberDatePickerState(initialSelectedDateMillis = entryDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())
+        DatePickerDialog(
+            onDismissRequest = { showDate = false },
+            confirmButton = { TextButton(onClick = { state.selectedDateMillis?.let { ms -> entryDate = Instant.ofEpochMilli(ms).atZone(ZoneId.systemDefault()).toLocalDate() }; showDate = false }) { Text("확인") } },
+            dismissButton = { TextButton(onClick = { showDate = false }) { Text("취소") } },
+        ) { DatePicker(state = state) }
+    }
 }
 
 private fun comma(v: Long): String {
@@ -600,3 +629,5 @@ private fun comma(v: Long): String {
     return "$sign${kotlin.math.abs(v).toString().reversed().chunked(3).joinToString(",").reversed()}"
 }
 private fun signed(rate: Double): String = "${if (rate >= 0) "+" else ""}${"%.2f".format(rate * 100)}"
+/** 표 컴팩트 표시 — 원을 만원 단위로(514,000 → 51.4만). */
+private fun manwon(v: Long): String = "%.1f만".format(v / 10000.0)
