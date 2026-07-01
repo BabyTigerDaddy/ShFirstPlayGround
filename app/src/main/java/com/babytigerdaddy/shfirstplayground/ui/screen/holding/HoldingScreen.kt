@@ -176,6 +176,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     editTarget?.let { h ->
         EditHoldingDialog(
             holding = h,
+            viewModel = viewModel,
             onSave = { edited -> viewModel.updateHolding(edited); editTarget = null },
             onSellClick = { editTarget = null; sellTarget = h },
             onDismiss = { editTarget = null },
@@ -716,9 +717,11 @@ private fun DeleteConfirmDialog(label: String, onConfirm: () -> Unit, onDismiss:
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EditHoldingDialog(holding: Holding, onSave: (Holding) -> Unit, onSellClick: () -> Unit, onDismiss: () -> Unit) {
+private fun EditHoldingDialog(holding: Holding, viewModel: HoldingViewModel, onSave: (Holding) -> Unit, onSellClick: () -> Unit, onDismiss: () -> Unit) {
     val c = LocalHoldingColors.current
+    val candidates by viewModel.stockCandidates.collectAsStateWithLifecycle()
     var name by remember { mutableStateOf(holding.ticker) }
+    var justPicked by remember { mutableStateOf(true) } // 처음엔 기존 종목명이라 후보 숨김
     var buy by remember { mutableStateOf(holding.buyPrice.toString()) }
     var qty by remember { mutableStateOf(holding.quantity.toString()) }
     var entryDate by remember { mutableStateOf(holding.entryDate) }
@@ -732,7 +735,27 @@ private fun EditHoldingDialog(holding: Holding, onSave: (Holding) -> Unit, onSel
         title = { Text("종목 편집", fontWeight = FontWeight.Bold, color = c.ink) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(name, { name = it.take(20) }, singleLine = true, label = { Text("종목명") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it.take(20); justPicked = false; viewModel.searchStock(it) },
+                    singleLine = true,
+                    label = { Text("종목명 (이름으로 검색)") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (!justPicked && candidates.isNotEmpty()) {
+                    Column(modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).background(c.line)) {
+                        candidates.take(6).forEach { s ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().clickable { name = s.name; justPicked = true }.padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(s.name, fontSize = 14.sp, color = c.ink)
+                                Text("${s.code} · ${s.market}", fontSize = 11.sp, color = c.faint)
+                            }
+                        }
+                    }
+                }
                 OutlinedTextField(buy, { buy = it.filter { c -> c.isDigit() }.take(12) }, singleLine = true, label = { Text("매수가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(qty, { qty = it.filter { c -> c.isDigit() }.take(9) }, singleLine = true, label = { Text("수량") }, suffix = { Text("주") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 Text("현재가는 앱이 야후에서 자동으로 갱신해요.", fontSize = 11.sp, color = c.faint)
