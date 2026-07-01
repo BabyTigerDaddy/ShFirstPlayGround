@@ -15,6 +15,8 @@ data class Holding(
     val id: String,
     /** 소속 계좌 id. */
     val accountId: String = Account.DEFAULT_ID,
+    /** 종목코드(6자리, 예 삼성전자 005930) — 시세 API 조회용. 없으면 빈 문자열(수동 입력). */
+    val code: String = "",
     /** 종목명. */
     val ticker: String,
     /** 매수가(원, 1주). */

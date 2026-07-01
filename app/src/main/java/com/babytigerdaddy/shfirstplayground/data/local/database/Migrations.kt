@@ -33,3 +33,15 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         )
     }
 }
+
+/**
+ * v7 → v8: 보유 종목에 종목코드(code) 컬럼 추가 — 시세 API 자동 조회용.
+ * 기존 보유는 코드 빈 문자열로 채워짐(수동 입력 fallback 유지).
+ */
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE `holding` ADD COLUMN `code` TEXT NOT NULL DEFAULT ''",
+        )
+    }
+}

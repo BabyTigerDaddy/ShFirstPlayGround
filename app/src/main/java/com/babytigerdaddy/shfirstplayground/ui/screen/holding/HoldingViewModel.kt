@@ -34,6 +34,8 @@ import javax.inject.Inject
 /** 보유 종목 추가 입력 상태. */
 data class HoldingInputUiState(
     val ticker: String = "",
+    /** 종목코드(6자리) — 시세 자동조회용, 선택. */
+    val codeText: String = "",
     val buyPriceText: String = "",
     val currentPriceText: String = "",
     val quantityText: String = "1",
@@ -147,6 +149,8 @@ class HoldingViewModel @Inject constructor(
     // ---------- 입력 ----------
 
     fun onTickerChange(text: String) = _input.update { it.copy(ticker = text) }
+    fun onCodeChange(text: String) =
+        _input.update { it.copy(codeText = text.filter { c -> c.isDigit() }.take(6)) }
     fun onBuyPriceChange(text: String) =
         _input.update { it.copy(buyPriceText = text.filter { c -> c.isDigit() }.take(12)) }
     fun onCurrentPriceChange(text: String) =
@@ -170,6 +174,7 @@ class HoldingViewModel @Inject constructor(
                 Holding(
                     id = UUID.randomUUID().toString(),
                     accountId = targetAccount,
+                    code = s.codeText.trim(),
                     ticker = s.ticker.trim(),
                     buyPrice = buy,
                     currentPrice = current,

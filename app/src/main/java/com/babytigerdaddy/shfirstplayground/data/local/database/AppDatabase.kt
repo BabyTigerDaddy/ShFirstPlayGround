@@ -15,6 +15,7 @@ import androidx.room.TypeConverters
  * v5 → v6: SoldRecordEntity 추가 (매도 내역 — 보유노트).
  * v6 → v7: AccountEntity + holding/sold_record에 accountId (다중계좌).
  *          기존 데이터 보존 마이그레이션([MIGRATION_6_7]) — 기본 계좌로 이어붙임.
+ * v7 → v8: holding에 code(종목코드) 컬럼 — 시세 API 조회용([MIGRATION_7_8], 데이터 보존).
  */
 @Database(
     entities = [
@@ -26,7 +27,7 @@ import androidx.room.TypeConverters
         SoldRecordEntity::class,
         AccountEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

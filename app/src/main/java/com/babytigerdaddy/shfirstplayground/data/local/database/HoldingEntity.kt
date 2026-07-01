@@ -13,6 +13,8 @@ data class HoldingEntity(
     @PrimaryKey val id: String,
     // defaultValue = Account.DEFAULT_ID('default') — v6→v7 마이그레이션 ALTER 문과 일치.
     @ColumnInfo(defaultValue = "'default'") val accountId: String,
+    // 종목코드 — v7→v8 마이그레이션 ALTER 문과 일치(기본 빈 문자열).
+    @ColumnInfo(defaultValue = "''") val code: String,
     val ticker: String,
     val buyPrice: Long,
     val currentPrice: Long,
@@ -23,6 +25,7 @@ data class HoldingEntity(
     fun toDomain(): Holding = Holding(
         id = id,
         accountId = accountId,
+        code = code,
         ticker = ticker,
         buyPrice = buyPrice,
         currentPrice = currentPrice,
@@ -35,6 +38,7 @@ data class HoldingEntity(
         fun fromDomain(h: Holding): HoldingEntity = HoldingEntity(
             id = h.id,
             accountId = h.accountId,
+            code = h.code,
             ticker = h.ticker,
             buyPrice = h.buyPrice,
             currentPrice = h.currentPrice,
