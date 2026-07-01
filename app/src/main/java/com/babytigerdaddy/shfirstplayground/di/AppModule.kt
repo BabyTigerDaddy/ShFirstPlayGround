@@ -6,6 +6,7 @@ import com.babytigerdaddy.shfirstplayground.data.repository.RoomHappyLogReposito
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomHoldingRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomMonthlyGoalRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomSoldRecordRepository
+import com.babytigerdaddy.shfirstplayground.data.remote.YahooStockPriceSource
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomStockMasterRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomTradeJournalRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.AccountRepository
@@ -15,6 +16,7 @@ import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.MonthlyGoalRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.SoldRecordRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.StockMasterRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.StockPriceSource
 import com.babytigerdaddy.shfirstplayground.domain.repository.TradeJournalRepository
 import dagger.Binds
 import dagger.Module
@@ -74,4 +76,10 @@ abstract class AppModule {
     abstract fun bindStockMasterRepository(
         impl: RoomStockMasterRepository,
     ): StockMasterRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStockPriceSource(
+        impl: YahooStockPriceSource,
+    ): StockPriceSource
 }

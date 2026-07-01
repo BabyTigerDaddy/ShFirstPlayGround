@@ -17,6 +17,7 @@ import com.babytigerdaddy.shfirstplayground.domain.repository.StockMasterReposit
 import com.babytigerdaddy.shfirstplayground.domain.usecase.AllocationCalculator
 import com.babytigerdaddy.shfirstplayground.domain.usecase.HoldingCalculator
 import com.babytigerdaddy.shfirstplayground.domain.usecase.RecordSaleUseCase
+import com.babytigerdaddy.shfirstplayground.domain.usecase.RefreshPricesUseCase
 import com.babytigerdaddy.shfirstplayground.domain.usecase.SoldRecordCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +53,17 @@ data class HoldingInputUiState(
             !saving
 }
 
+/** 시세 자동 갱신 상태. */
+data class PriceRefreshState(
+    val loading: Boolean = false,
+    /** 마지막으로 시세를 받아온 시각(성공 시). */
+    val lastUpdated: java.time.LocalDateTime? = null,
+    /** 마지막 갱신에서 시세 받아온 종목 수. */
+    val lastFetchedCount: Int = 0,
+    /** 마지막 갱신이 실패했는지(네트워크·차단 등). */
+    val failed: Boolean = false,
+)
+
 @HiltViewModel
 class HoldingViewModel @Inject constructor(
     private val repository: HoldingRepository,
@@ -59,6 +71,7 @@ class HoldingViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val stockMasterRepository: StockMasterRepository,
     private val recordSale: RecordSaleUseCase,
+    private val refreshPricesUseCase: RefreshPricesUseCase,
 ) : ViewModel() {
 
     private val _input = MutableStateFlow(HoldingInputUiState())
@@ -75,6 +88,10 @@ class HoldingViewModel @Inject constructor(
     /** 종목 검색 후보(자동완성). */
     private val _stockCandidates = MutableStateFlow<List<StockMaster>>(emptyList())
     val stockCandidates: StateFlow<List<StockMaster>> = _stockCandidates.asStateFlow()
+
+    /** 시세 자동 갱신 상태 — 상단 '업데이트 중 / 방금 갱신 HH:mm'용. */
+    private val _priceRefresh = MutableStateFlow(PriceRefreshState())
+    val priceRefresh: StateFlow<PriceRefreshState> = _priceRefresh.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -93,6 +110,24 @@ class HoldingViewModel @Inject constructor(
             if (stockMasterRepository.count() == 0) {
                 stockMasterRepository.saveAll(StockSeed.list)
             }
+        }
+    }
+
+    /**
+     * 시세 자동 갱신 — 앱 진입/새로고침 시 호출. 종목코드 있는 보유 종목 현재가를 시세 소스에서 받아 갱신.
+     * 이미 갱신 중이면 무시(중복 방지).
+     */
+    fun refreshPrices() {
+        if (_priceRefresh.value.loading) return
+        viewModelScope.launch {
+            _priceRefresh.update { it.copy(loading = true) }
+            val fetched = runCatching { refreshPricesUseCase() }.getOrNull()
+            _priceRefresh.value = PriceRefreshState(
+                loading = false,
+                lastUpdated = if (fetched != null) LocalDateTime.now() else _priceRefresh.value.lastUpdated,
+                lastFetchedCount = fetched ?: 0,
+                failed = fetched == null,
+            )
         }
     }
 
