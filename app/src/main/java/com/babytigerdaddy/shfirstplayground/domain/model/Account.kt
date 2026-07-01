@@ -19,5 +19,9 @@ data class Account(
         /** 기존 데이터가 이어붙는 기본 계좌 id — 마이그레이션과 SQL default가 공유하는 값. */
         const val DEFAULT_ID = "default"
         const val DEFAULT_NAME = "내 계좌"
+
+        /** 가상 '전체' 계좌 id — 선택 시 모든 계좌를 합쳐서 본다(실제 저장 계좌 아님). */
+        const val ALL_ID = "__all__"
+        const val ALL_NAME = "전체"
     }
 }

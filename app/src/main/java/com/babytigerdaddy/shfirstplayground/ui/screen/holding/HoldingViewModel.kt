@@ -82,9 +82,9 @@ class HoldingViewModel @Inject constructor(
         }
     }
 
-    /** 선택 계좌의 보유 종목만. */
+    /** 선택 계좌의 보유 종목만('전체' 선택 시 모든 계좌 합산). */
     private val accountHoldings = combine(repository.observeAll(), _selectedAccountId) { list, acc ->
-        list.filter { it.accountId == acc }
+        if (acc == Account.ALL_ID) list else list.filter { it.accountId == acc }
     }
 
     /** 보유 종목 집계(선택 계좌). */
@@ -95,7 +95,7 @@ class HoldingViewModel @Inject constructor(
     /** 매도 내역 집계(선택 계좌). */
     val soldHistory: StateFlow<SoldHistorySummary> =
         combine(soldRepository.observeAll(), _selectedAccountId) { list, acc ->
-            list.filter { it.accountId == acc }
+            if (acc == Account.ALL_ID) list else list.filter { it.accountId == acc }
         }
             .map(SoldRecordCalculator::compute)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SoldHistorySummary.EMPTY)
@@ -163,10 +163,13 @@ class HoldingViewModel @Inject constructor(
         val qty = s.quantityText.filter { it.isDigit() }.toIntOrNull()?.coerceAtLeast(1) ?: 1
         viewModelScope.launch {
             _input.update { it.copy(saving = true) }
+            // '전체' 보기 상태에서 추가하면 첫 실제 계좌에 담는다.
+            val targetAccount = _selectedAccountId.value.takeUnless { it == Account.ALL_ID }
+                ?: accounts.value.firstOrNull()?.id ?: Account.DEFAULT_ID
             repository.save(
                 Holding(
                     id = UUID.randomUUID().toString(),
-                    accountId = _selectedAccountId.value,
+                    accountId = targetAccount,
                     ticker = s.ticker.trim(),
                     buyPrice = buy,
                     currentPrice = current,
