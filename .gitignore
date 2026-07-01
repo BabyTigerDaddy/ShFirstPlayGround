@@ -15,6 +15,10 @@ local.properties
 **/build/
 .kotlin/
 
+# 파이어베이스 키 파일 — public repo 노출 방지. 각 개발 환경에 아빠가 준 파일을 직접 배치.
+google-services.json
+app/google-services.json
+
 # build logs / sdk path
 workspace_*.log
 workspace_emu.log
