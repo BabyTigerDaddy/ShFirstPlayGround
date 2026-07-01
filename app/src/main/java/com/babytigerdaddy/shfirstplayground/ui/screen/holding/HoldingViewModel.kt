@@ -190,6 +190,16 @@ class HoldingViewModel @Inject constructor(
     }
 
     /**
+     * 보유 종목 통째로 수정 — 종목명·매수가·현재가·수량·편입일까지.
+     * 오타 나도 지우고 새로 쓸 필요 없이 그 자리에서 고침. id·계좌·최초기록은 보존한 채 넘긴다.
+     */
+    fun updateHolding(edited: Holding) {
+        viewModelScope.launch {
+            repository.save(edited)
+        }
+    }
+
+    /**
      * 매도 — 보유에서 빼고 '매도 내역'으로 이관한다(같은 계좌 유지).
      *
      * (mood·note는 화면 호환을 위해 받되 이 앱에선 사용하지 않음.)
