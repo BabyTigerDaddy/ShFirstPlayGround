@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -36,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -92,6 +94,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     val allocation by viewModel.allocation.collectAsStateWithLifecycle()
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
     val selectedAccountId by viewModel.selectedAccountId.collectAsStateWithLifecycle()
+    val priceRefresh by viewModel.priceRefresh.collectAsStateWithLifecycle()
     var tab by remember { mutableIntStateOf(0) } // 0=보유, 1=배분, 2=판내역
     var showAdd by remember { mutableStateOf(false) }
     var sellTarget by remember { mutableStateOf<Holding?>(null) }
@@ -101,6 +104,9 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     var showAddAccount by remember { mutableStateOf(false) }
     var showRenameAccount by remember { mutableStateOf(false) }
     var showDeleteAccount by remember { mutableStateOf(false) }
+
+    // 앱 진입 시 저장된 종목 현재가를 야후에서 자동 갱신
+    LaunchedEffect(Unit) { viewModel.refreshPrices() }
 
     Box(modifier = Modifier.fillMaxSize().background(HoldBg)) {
         LazyColumn(
@@ -121,6 +127,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                     )
                 }
             }
+            item { RefreshBar(priceRefresh, onRefresh = { viewModel.refreshPrices() }) }
             item { SegToggle(tab = tab, onSelect = { tab = it }) }
 
             when (tab) {
@@ -185,6 +192,36 @@ private fun SegToggle(tab: Int, onSelect: (Int) -> Unit) {
                 Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (sel) HoldInk else HoldSub)
             }
         }
+    }
+}
+
+// ---------- 시세 갱신 바 ----------
+@Composable
+private fun RefreshBar(state: PriceRefreshState, onRefresh: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            when {
+                state.loading -> {
+                    CircularProgressIndicator(modifier = Modifier.size(13.dp), strokeWidth = 2.dp, color = HoldSub)
+                    Text("시세 업데이트 중...", fontSize = 12.sp, color = HoldSub)
+                }
+                state.failed -> Text("⚠ 갱신 실패 · 마지막 값 유지", fontSize = 12.sp, color = Color(0xFFC8881A))
+                state.lastUpdated != null -> Text(
+                    "방금 갱신 · ${state.lastUpdated.format(DateTimeFormatter.ofPattern("HH:mm"))}" + if (state.lastFetchedCount > 0) " · ${state.lastFetchedCount}종목" else "",
+                    fontSize = 12.sp, color = HoldSub,
+                )
+                else -> Text("새로고침으로 현재가 불러오기", fontSize = 12.sp, color = HoldFaint)
+            }
+        }
+        Text(
+            text = "↻ 새로고침",
+            fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LossBlue,
+            modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(enabled = !state.loading) { onRefresh() }.padding(horizontal = 8.dp, vertical = 4.dp),
+        )
     }
 }
 
