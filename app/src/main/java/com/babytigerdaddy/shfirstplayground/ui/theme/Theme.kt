@@ -8,6 +8,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 
 private val LightColors = lightColorScheme(
@@ -56,4 +57,27 @@ fun ShFirstPlayGroundTheme(
         shapes = AppShapes,
         content = content,
     )
+}
+
+/**
+ * 보유노트 — 사용자가 고른 [ThemeSettings](모양·색)로 테마 적용.
+ *
+ * 모양은 [shapesFor], 색은 [holdingColorsFor]로 골라 [LocalHoldingColors]에 실어
+ * 화면 전체에 흘려보낸다. 손익 빨강/파랑은 여기 관여 안 함(고정 상수).
+ */
+@Composable
+fun ShFirstPlayGroundTheme(
+    settings: ThemeSettings,
+    content: @Composable () -> Unit,
+) {
+    val holdingColors = holdingColorsFor(settings.palette)
+    val colorScheme = if (settings.palette == ThemePalette.DARK) DarkColors else LightColors
+    CompositionLocalProvider(LocalHoldingColors provides holdingColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography,
+            shapes = shapesFor(settings.shape),
+            content = content,
+        )
+    }
 }

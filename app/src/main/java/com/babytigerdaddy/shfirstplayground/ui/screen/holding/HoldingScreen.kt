@@ -88,7 +88,10 @@ private val DaysBadgeFg = Color(0xFF15883F)
 
 /** 보유노트 — 보유 중(표) / 판 내역(집계·그래프·매도 리스트) 토글 단독 앱. */
 @Composable
-fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
+fun HoldingScreen(
+    viewModel: HoldingViewModel = hiltViewModel(),
+    onOpenSettings: () -> Unit = {},
+) {
     val summary by viewModel.summary.collectAsStateWithLifecycle()
     val sold by viewModel.soldHistory.collectAsStateWithLifecycle()
     val allocation by viewModel.allocation.collectAsStateWithLifecycle()
@@ -117,7 +120,14 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
         ) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(text = "보유노트", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = HoldInk)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(text = "보유노트", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = HoldInk)
+                        TextButton(onClick = onOpenSettings) { Text("⚙", fontSize = 22.sp, color = HoldSub) }
+                    }
                     AccountSelector(
                         accounts = accounts,
                         selectedId = selectedAccountId,
