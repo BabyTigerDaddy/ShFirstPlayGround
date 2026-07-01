@@ -13,3 +13,7 @@
 -keep class com.google.android.libraries.identity.googleid.** { *; }
 -keepattributes Signature, EnclosingMethod, InnerClasses
 -dontwarn com.google.**
+
+# Hilt @HiltViewModel — R8이 ViewModel 클래스명을 뭉개 Hilt 키가 충돌
+# ('Multiple entries with same key') 하는 것 방지 (fullMode=false와 이중 안전)
+-keep,allowobfuscation,allowshrinking @dagger.hilt.android.lifecycle.HiltViewModel class *
