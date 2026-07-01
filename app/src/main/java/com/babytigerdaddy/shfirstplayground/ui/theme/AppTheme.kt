@@ -37,7 +37,7 @@ data class HoldingColors(
     val pointBg: Color,  // 포인트 옅은 배경(배지 등)
 )
 
-// LIGHT = 현재 보유노트 화면 색(기준). 뼈대가 채워 바로 동작.
+// LIGHT = 현재 보유노트 화면 색(기준). point는 브랜드 보라(아이콘 그래디언트 끝색)로 통일.
 val LightHoldingColors = HoldingColors(
     bg = Color(0xFFEDEFF3),
     card = Color(0xFFFFFFFF),
@@ -45,7 +45,7 @@ val LightHoldingColors = HoldingColors(
     sub = Color(0xFF4B5562),
     faint = Color(0xFF818B99),
     line = Color(0xFFE2E6EC),
-    point = Color(0xFF5A49C8),
+    point = Color(0xFF6C5CE7),   // 브랜드 보라 (민트→보라 그래디언트 끝)
     pointBg = Color(0xFFEAE7FB),
 )
 

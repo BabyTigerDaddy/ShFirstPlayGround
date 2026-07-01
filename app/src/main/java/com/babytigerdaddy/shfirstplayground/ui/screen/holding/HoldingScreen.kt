@@ -31,6 +31,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -142,7 +143,15 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                     0 -> {
                         item { SummaryHeader(summary.totalEval, summary.totalReturnRate, summary.totalPnl, summary.totalCost) }
                         item {
-                            FilledTonalButton(onClick = { showAdd = true }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
+                            FilledTonalButton(
+                                onClick = { showAdd = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium,
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = c.pointBg,
+                                    contentColor = c.point,
+                                ),
+                            ) {
                                 Text(text = "+  종목 추가", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -253,7 +262,7 @@ private fun RefreshBar(state: PriceRefreshState, onRefresh: () -> Unit) {
         }
         Text(
             text = "↻ 새로고침",
-            fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LossBlue,
+            fontSize = 12.sp, fontWeight = FontWeight.Bold, color = c.point,
             modifier = Modifier.clip(MaterialTheme.shapes.small).clickable(enabled = !state.loading) { onRefresh() }.padding(horizontal = 8.dp, vertical = 4.dp),
         )
     }
@@ -292,7 +301,7 @@ private fun AccountSelector(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(c.sub))
                         Text("전체 (합산)", color = c.ink, fontWeight = if (isAll) FontWeight.Bold else FontWeight.Normal)
-                        if (isAll) Text("✓", color = LossBlue)
+                        if (isAll) Text("✓", color = c.point)
                     }
                 },
                 onClick = { onSelect(Account.ALL_ID); expanded = false },
@@ -304,14 +313,14 @@ private fun AccountSelector(
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(AllocColors[i % AllocColors.size]))
                             Text(a.name, color = c.ink, fontWeight = if (a.id == selectedId) FontWeight.Bold else FontWeight.Normal)
-                            if (a.id == selectedId) Text("✓", color = LossBlue)
+                            if (a.id == selectedId) Text("✓", color = c.point)
                         }
                     },
                     onClick = { onSelect(a.id); expanded = false },
                 )
             }
             HorizontalDivider()
-            DropdownMenuItem(text = { Text("+ 새 계좌 추가", color = LossBlue) }, onClick = { expanded = false; onAddClick() })
+            DropdownMenuItem(text = { Text("+ 새 계좌 추가", color = c.point) }, onClick = { expanded = false; onAddClick() })
             if (!isAll) {
                 DropdownMenuItem(text = { Text("현재 계좌 이름 변경", color = c.ink) }, onClick = { expanded = false; onRenameClick() })
                 if (accounts.size > 1) DropdownMenuItem(text = { Text("현재 계좌 삭제", color = ProfitRed) }, onClick = { expanded = false; onDeleteClick() })
@@ -340,7 +349,7 @@ private fun AccountNameDialog(title: String, initial: String, onConfirm: (String
                 modifier = Modifier.fillMaxWidth(),
             )
         },
-        confirmButton = { TextButton(onClick = { if (text.isNotBlank()) onConfirm(text.trim()) }, enabled = text.isNotBlank()) { Text("저장", color = LossBlue) } },
+        confirmButton = { TextButton(onClick = { if (text.isNotBlank()) onConfirm(text.trim()) }, enabled = text.isNotBlank()) { Text("저장", color = c.point) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = c.sub) } },
     )
 }
@@ -685,7 +694,7 @@ private fun SellDialog(holding: Holding, onConfirm: () -> Unit, onDismiss: () ->
                 Text("매도하면 '판 내역'으로 넘어갑니다.", fontSize = 13.sp, color = c.sub)
             }
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("매도", color = LossBlue) } },
+        confirmButton = { TextButton(onClick = onConfirm) { Text("매도", color = c.point) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = c.sub) } },
     )
 }
@@ -700,7 +709,7 @@ private fun DeleteConfirmDialog(label: String, onConfirm: () -> Unit, onDismiss:
         textContentColor = c.sub,
         title = { Text("삭제", fontWeight = FontWeight.Bold, color = c.ink) },
         text = { Text("'$label'을(를) 삭제할까요? 되돌릴 수 없어요.", fontSize = 14.sp, color = c.sub) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("삭제", color = LossBlue) } },
+        confirmButton = { TextButton(onClick = onConfirm) { Text("삭제", color = c.point) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = c.sub) } },
     )
 }
@@ -731,7 +740,7 @@ private fun EditHoldingDialog(holding: Holding, onSave: (Holding) -> Unit, onSel
                     Text("편입일 · ${entryDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))}", color = c.ink)
                 }
                 OutlinedButton(onClick = onSellClick, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
-                    Text("이 종목 매도 (판 내역으로)", color = LossBlue)
+                    Text("이 종목 매도 (판 내역으로)", color = c.point)
                 }
             }
         },
@@ -744,7 +753,7 @@ private fun EditHoldingDialog(holding: Holding, onSave: (Holding) -> Unit, onSel
                     onSave(holding.copy(ticker = name.trim(), buyPrice = b, quantity = q, entryDate = entryDate))
                 },
                 enabled = canSave,
-            ) { Text("저장", color = LossBlue) }
+            ) { Text("저장", color = c.point) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = c.sub) } },
     )
