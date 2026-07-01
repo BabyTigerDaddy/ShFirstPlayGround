@@ -49,38 +49,40 @@ val LightHoldingColors = HoldingColors(
     pointBg = Color(0xFFEAE7FB),
 )
 
-// 아래 3종은 동작용 placeholder — 문서가 룩 얹을 때 실제 감성값으로 교체.
+// DARK — 딥네이비 차콜에 민트 형광 포인트(아이콘 A 민트와 통일). MZ 다크 감성.
 val DarkHoldingColors = HoldingColors(
-    bg = Color(0xFF0E1116),
-    card = Color(0xFF181D25),
-    ink = Color(0xFFEDF1F6),
-    sub = Color(0xFFAAB4C0),
-    faint = Color(0xFF6C7683),
-    line = Color(0xFF262D37),
-    point = Color(0xFF39E6C3),   // 형광 포인트(MZ 다크)
-    pointBg = Color(0xFF14322D),
+    bg = Color(0xFF0B0E13),
+    card = Color(0xFF161B23),
+    ink = Color(0xFFEAEEF4),
+    sub = Color(0xFFA3ADB9),
+    faint = Color(0xFF69727E),
+    line = Color(0xFF232A34),
+    point = Color(0xFF3DD6C0),   // 민트 형광 — 브랜드 포인트
+    pointBg = Color(0xFF10322C),
 )
 
+// PASTEL — 화사한 라벤더+화이트. 말랑하고 밝은 톤.
 val PastelHoldingColors = HoldingColors(
-    bg = Color(0xFFFBF7FF),
+    bg = Color(0xFFFBF6FF),
     card = Color(0xFFFFFFFF),
-    ink = Color(0xFF3A3550),
-    sub = Color(0xFF6E6788),
-    faint = Color(0xFFA79FC0),
-    line = Color(0xFFEFE8FA),
-    point = Color(0xFFB18CF0),
-    pointBg = Color(0xFFF1E9FE),
+    ink = Color(0xFF423A57),
+    sub = Color(0xFF746A8C),
+    faint = Color(0xFFAAA1C2),
+    line = Color(0xFFF0E9FB),
+    point = Color(0xFFA97DF0),
+    pointBg = Color(0xFFF2EAFE),
 )
 
+// MONO — 또렷한 흑백. 포인트도 잉크색 하나로 통일한 극미니멀 세련.
 val MonoHoldingColors = HoldingColors(
-    bg = Color(0xFFF6F6F6),
+    bg = Color(0xFFF4F4F4),
     card = Color(0xFFFFFFFF),
-    ink = Color(0xFF111111),
-    sub = Color(0xFF555555),
-    faint = Color(0xFF999999),
-    line = Color(0xFFE4E4E4),
-    point = Color(0xFF111111),
-    pointBg = Color(0xFFEDEDED),
+    ink = Color(0xFF0E0E0E),
+    sub = Color(0xFF565656),
+    faint = Color(0xFF9A9A9A),
+    line = Color(0xFFE6E6E6),
+    point = Color(0xFF0E0E0E),
+    pointBg = Color(0xFFEAEAEA),
 )
 
 fun holdingColorsFor(palette: ThemePalette): HoldingColors = when (palette) {
