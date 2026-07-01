@@ -11,8 +11,8 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        // holding-note-app: 손익일지(매매일지)와 별개 앱으로 동시 설치되게 식별자 분리.
-        applicationId = "com.babytigerdaddy.holdingnote"
+        // 매기(maegi) — 소나무(pinetree) 상품 식별자. 손익일지(매매일지)와 별개 앱으로 동시 설치.
+        applicationId = "com.pinetree.maegi"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
