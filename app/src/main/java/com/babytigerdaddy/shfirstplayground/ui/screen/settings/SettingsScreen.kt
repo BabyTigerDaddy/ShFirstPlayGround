@@ -37,9 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.LossBlue
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.ProfitRed
 import com.babytigerdaddy.shfirstplayground.ui.theme.LocalHoldingColors
-import com.babytigerdaddy.shfirstplayground.ui.theme.ThemePalette
 import com.babytigerdaddy.shfirstplayground.ui.theme.ThemeShape
-import com.babytigerdaddy.shfirstplayground.ui.theme.holdingColorsFor
 
 /**
  * 설정 화면 — 모양(소프트/샤프) · 색 테마(라이트/다크/파스텔/모노) 선택.
@@ -100,20 +98,9 @@ fun SettingsScreen(
             ) { viewModel.setShape(ThemeShape.SHARP) }
         }
 
-        Spacer(Modifier.height(24.dp))
-        SectionLabel("색 테마")
-        Spacer(Modifier.height(10.dp))
-        PaletteOption("라이트", "화이트 기본", ThemePalette.LIGHT, settings.palette == ThemePalette.LIGHT) { viewModel.setPalette(ThemePalette.LIGHT) }
-        Spacer(Modifier.height(9.dp))
-        PaletteOption("다크", "검정 배경 · 민트 형광", ThemePalette.DARK, settings.palette == ThemePalette.DARK) { viewModel.setPalette(ThemePalette.DARK) }
-        Spacer(Modifier.height(9.dp))
-        PaletteOption("파스텔", "연보라 말랑", ThemePalette.PASTEL, settings.palette == ThemePalette.PASTEL) { viewModel.setPalette(ThemePalette.PASTEL) }
-        Spacer(Modifier.height(9.dp))
-        PaletteOption("모노", "흑백 미니멀", ThemePalette.MONO, settings.palette == ThemePalette.MONO) { viewModel.setPalette(ThemePalette.MONO) }
-
         Spacer(Modifier.height(20.dp))
         Text(
-            "고른 즉시 앱 전체에 적용되고 저장돼요. 오름 빨강·내림 파랑은 어느 테마든 그대로예요.",
+            "모양은 고른 즉시 적용·저장돼요. 화이트/다크는 폰 설정을 따라 자동으로 바뀌고, 오름 빨강·내림 파랑은 항상 그대로예요.",
             fontSize = 12.sp, color = c.faint,
         )
         Spacer(Modifier.height(28.dp))
@@ -268,44 +255,5 @@ private fun ShapeOption(
             if (selected) Text("✓", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = c.point)
         }
         Text(desc, fontSize = 11.sp, color = c.faint)
-    }
-}
-
-// ---------- 색 테마 옵션 (팔레트 스와치) ----------
-@Composable
-private fun PaletteOption(
-    title: String,
-    desc: String,
-    palette: ThemePalette,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val c = LocalHoldingColors.current
-    val p = holdingColorsFor(palette)
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .background(c.card)
-            .border(BorderStroke(if (selected) 2.dp else 1.dp, if (selected) c.point else c.line), MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(13.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // 스와치 — 배경·카드·포인트 세 색을 겹친 미리보기
-        Box(
-            Modifier.size(44.dp).clip(RoundedCornerShape(11.dp)).background(p.bg)
-                .border(1.dp, c.line, RoundedCornerShape(11.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Box(Modifier.size(26.dp).clip(RoundedCornerShape(7.dp)).background(p.card)) {
-                Box(Modifier.padding(6.dp).size(10.dp).clip(RoundedCornerShape(5.dp)).background(p.point))
-            }
-        }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = c.ink)
-            Text(desc, fontSize = 12.sp, color = c.faint)
-        }
-        if (selected) Text("✓", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = c.point)
     }
 }
