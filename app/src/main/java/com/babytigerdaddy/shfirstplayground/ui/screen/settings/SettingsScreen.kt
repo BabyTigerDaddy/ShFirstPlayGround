@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,6 +27,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,7 +74,10 @@ fun SettingsScreen(
             }
         }
 
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(18.dp))
+        AccountSection()
+
+        Spacer(Modifier.height(24.dp))
         PreviewCard()
 
         Spacer(Modifier.height(24.dp))
@@ -152,6 +159,79 @@ private fun MiniRow(name: String, price: String, rate: String, rateColor: androi
 private fun SectionLabel(text: String) {
     val c = LocalHoldingColors.current
     Text(text, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = c.sub)
+}
+
+// ---------- 계정 (로그인은 '기록 지키고 싶은 사람'이 켜는 선택 옵션) ----------
+@Composable
+private fun AccountSection(authViewModel: AuthViewModel = hiltViewModel()) {
+    val c = LocalHoldingColors.current
+    val context = LocalContext.current
+    val user = authViewModel.user
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SectionLabel("계정")
+        if (user == null) {
+            Text(
+                "로그인하면 종목·기록이 계정에 백업돼요. 폰을 바꿔도 그대로 살아나요.\n안 해도 이 폰에서 그대로 쓸 수 있어요 — 로그인은 선택이에요.",
+                fontSize = 12.sp, color = c.faint,
+            )
+            GoogleButton(loading = authViewModel.loading) { authViewModel.signInGoogle(context) }
+            KakaoButton()
+            authViewModel.errorMsg?.let { msg ->
+                Text(msg, fontSize = 12.sp, color = ProfitRed)
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)
+                    .background(c.card)
+                    .border(BorderStroke(1.dp, c.line), MaterialTheme.shapes.medium)
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(user.displayName ?: "로그인됨", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = c.ink)
+                    if (!user.email.isNullOrBlank()) Text(user.email!!, fontSize = 12.sp, color = c.faint)
+                    Text("기록이 이 계정에 백업돼요", fontSize = 11.sp, color = c.point)
+                }
+                OutlinedButton(onClick = { authViewModel.signOut() }) { Text("로그아웃", color = c.sub) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GoogleButton(loading: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)
+            .background(Color.White)
+            .border(BorderStroke(1.dp, Color(0xFFDADCE0)), MaterialTheme.shapes.medium)
+            .clickable(enabled = !loading, onClick = onClick)
+            .padding(vertical = 13.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (loading) {
+            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = Color(0xFF4285F4))
+        } else {
+            Text("G", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF4285F4))
+            Spacer(Modifier.size(9.dp))
+            Text("구글로 계속하기", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3C4043))
+        }
+    }
+}
+
+@Composable
+private fun KakaoButton() {
+    // 카카오 네이티브 앱키 확보 후 활성화 (지금은 준비 중 표시)
+    Row(
+        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)
+            .background(Color(0xFFFEE500).copy(alpha = 0.45f))
+            .padding(vertical = 13.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("카카오로 계속하기 (준비 중)", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3C1E1E).copy(alpha = 0.6f))
+    }
 }
 
 // ---------- 모양 옵션 (모서리 미리보기) ----------
