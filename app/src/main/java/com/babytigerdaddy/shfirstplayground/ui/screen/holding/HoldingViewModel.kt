@@ -115,4 +115,9 @@ class HoldingViewModel @Inject constructor(
     fun remove(id: String) {
         viewModelScope.launch { repository.delete(id) }
     }
+
+    /** 판 내역 삭제(잘못 기록 제거). */
+    fun deleteSoldRecord(id: String) {
+        viewModelScope.launch { soldRepository.delete(id) }
+    }
 }
