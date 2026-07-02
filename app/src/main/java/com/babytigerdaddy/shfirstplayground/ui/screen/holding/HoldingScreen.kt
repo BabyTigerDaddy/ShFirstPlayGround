@@ -30,6 +30,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -56,6 +57,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.babytigerdaddy.shfirstplayground.R
 import com.babytigerdaddy.shfirstplayground.domain.model.Account
 import com.babytigerdaddy.shfirstplayground.domain.model.AllocationSlice
 import com.babytigerdaddy.shfirstplayground.domain.model.AssetAllocation
@@ -198,18 +201,18 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
 private fun HoldingBottomBar(tab: Int, onSelect: (Int) -> Unit) {
     val c = LocalHoldingColors.current
     val items = listOf(
-        "💼" to "보유",
-        "🥧" to "배분",
-        "🧾" to "판내역",
-        "•••" to "설정",
+        R.drawable.ic_tab_holding to "보유",
+        R.drawable.ic_tab_allocation to "배분",
+        R.drawable.ic_tab_sold to "판내역",
+        R.drawable.ic_tab_settings to "설정",
     )
     NavigationBar(containerColor = c.card, tonalElevation = 0.dp) {
-        items.forEachIndexed { i, (icon, label) ->
+        items.forEachIndexed { i, (iconRes, label) ->
             NavigationBarItem(
                 selected = i == tab,
                 onClick = { onSelect(i) },
-                icon = { Text(icon, fontSize = 17.sp) },
-                label = { Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold) },
+                icon = { Icon(painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp)) },
+                label = { Text(label, fontSize = 11.5.sp, fontWeight = FontWeight.Bold) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = c.point,
                     selectedTextColor = c.point,
@@ -370,13 +373,13 @@ private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onD
                 TwoLineHead("평가손익", "수익률", 1.6f)
             }
             holdings.forEachIndexed { idx, h ->
-                if (idx > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(c.line))
+                if (idx > 0) Box(Modifier.fillMaxWidth().padding(horizontal = 12.dp).height(1.dp).background(c.line))
                 val tone = pnlColor(h.evalPnl)
                 val days = h.holdingDays(LocalDate.now())
                 Row(
                     Modifier.fillMaxWidth()
                         .combinedClickable(onClick = { onEdit(h) }, onLongClick = { onDelete(h) })
-                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                        .padding(horizontal = 12.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.weight(1.5f)) { Text(h.ticker, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = c.ink) }
