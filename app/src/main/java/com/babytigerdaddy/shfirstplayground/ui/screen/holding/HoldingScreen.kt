@@ -73,6 +73,8 @@ import com.babytigerdaddy.shfirstplayground.domain.model.DailyPnlPoint
 import com.babytigerdaddy.shfirstplayground.domain.model.Holding
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldRecord
+import com.babytigerdaddy.shfirstplayground.domain.usecase.PnlPeriod
+import com.babytigerdaddy.shfirstplayground.domain.usecase.SoldRecordCalculator
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.CumulativeLineChart
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.LossBlue
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.ProfitRed
@@ -435,16 +437,32 @@ private fun androidx.compose.foundation.lazy.LazyListScope.soldSection(sold: Sol
     }
     item {
         val c = LocalHoldingColors.current
+        var period by remember { mutableStateOf(PnlPeriod.WEEKLY) }
+        val points = SoldRecordCalculator.periodPoints(sold.records, period)
         Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(2.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("누적 실현손익", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.ink)
-                if (sold.cumulative.size < 2) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("누적 실현손익", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.ink)
+                    // 주간 / 월간 토글
+                    Row(Modifier.clip(MaterialTheme.shapes.small).background(c.line).padding(2.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        listOf(PnlPeriod.WEEKLY to "주간", PnlPeriod.MONTHLY to "월간").forEach { (p, lab) ->
+                            val sel = period == p
+                            Box(
+                                Modifier.clip(MaterialTheme.shapes.small)
+                                    .background(if (sel) c.card else Color.Transparent)
+                                    .clickable { period = p }
+                                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                            ) { Text(lab, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (sel) c.point else c.sub) }
+                        }
+                    }
+                }
+                if (points.size < 2) {
                     Box(Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
-                        Text("두 번 이상 팔면 곡선이 그려져요", fontSize = 13.sp, color = c.sub)
+                        Text("두 ${if (period == PnlPeriod.WEEKLY) "주" else "달"} 이상 쌓이면 곡선이 그려져요", fontSize = 13.sp, color = c.sub)
                     }
                 } else {
                     CumulativeLineChart(
-                        daily = sold.cumulative.map { DailyPnlPoint(it.soldDate, it.realizedPnl, it.cumulative, "") },
+                        daily = points.map { DailyPnlPoint(LocalDate.now(), it.realizedPnl, it.cumulative, it.label) },
                         modifier = Modifier.fillMaxWidth().height(180.dp),
                     )
                 }
