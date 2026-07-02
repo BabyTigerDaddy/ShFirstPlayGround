@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -366,11 +368,14 @@ private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onD
     val c = LocalHoldingColors.current
     Card(shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
         Column {
-            // 헤더 (2단) — 배경 띠 없이 깔끔하게
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            // 헤더 (2단) — 은은한 배경 띠(내용과 구분) + 항목 사이 세로 구분선
+            Row(Modifier.fillMaxWidth().background(c.line).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1.5f)) { Text("종목명", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = c.sub) }
+                Box(Modifier.size(width = 1.dp, height = 26.dp).background(c.faint.copy(alpha = 0.35f)))
                 TwoLineHead("매입가", "현재가", 1.4f)
+                Box(Modifier.size(width = 1.dp, height = 26.dp).background(c.faint.copy(alpha = 0.35f)))
                 TwoLineHead("수량", "보유일", 1.0f)
+                Box(Modifier.size(width = 1.dp, height = 26.dp).background(c.faint.copy(alpha = 0.35f)))
                 TwoLineHead("평가손익", "수익률", 1.6f)
             }
             holdings.forEachIndexed { idx, h ->
@@ -431,9 +436,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.soldSection(sold: Sol
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // 실현손익 — 좌우 스와이프로 전체/이번주/이번달 전환
             RealizedSwipeCard(SoldRecordCalculator.realizedByPeriod(sold.records, LocalDate.now()))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatBox("평균 수익률", "${signed(sold.avgReturnRate)}%", if (sold.avgReturnRate > 0) ProfitRed else if (sold.avgReturnRate < 0) LossBlue else c.ink, Modifier.weight(1f))
-                StatBox("승률", "${(sold.winRate * 100).toInt()}%", c.ink, Modifier.weight(1f), sub = "${sold.winCount}/${sold.saleCount}")
+            Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                StatBox("평균 수익률", "${signed(sold.avgReturnRate)}%", if (sold.avgReturnRate > 0) ProfitRed else if (sold.avgReturnRate < 0) LossBlue else c.ink, Modifier.weight(1f).fillMaxHeight())
+                StatBox("승률", "${(sold.winRate * 100).toInt()}%", c.ink, Modifier.weight(1f).fillMaxHeight(), sub = "${sold.winCount}/${sold.saleCount}")
             }
         }
     }
