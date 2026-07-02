@@ -1,0 +1,50 @@
+package com.babytigerdaddy.shfirstplayground.ui.screen.splash
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.babytigerdaddy.shfirstplayground.domain.usecase.RefreshPricesUseCase
+import com.babytigerdaddy.shfirstplayground.domain.usecase.SyncStockMasterUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+/** 스플래시 초기화 단계 — 하단 상태 문구용. */
+enum class SplashPhase { SYNCING_LIST, REFRESHING_PRICES, DONE }
+
+/**
+ * 스플래시(로딩 페이지) — 앱 켤 때 '매기' 로고를 보여주는 동안
+ * 시간 걸리는 초기화(종목 목록 동기화 → 시세 갱신)를 끝내고 메인으로 넘긴다.
+ *
+ * 로고가 깜빡이지 않게 최소 노출 시간을 두고 초기화와 동시에 진행.
+ * [phase]로 단계(목록/시세/완료)를 알려 스플래시 하단 문구를 살린다.
+ */
+@HiltViewModel
+class SplashViewModel @Inject constructor(
+    private val syncStockMaster: SyncStockMasterUseCase,
+    private val refreshPrices: RefreshPricesUseCase,
+) : ViewModel() {
+
+    private val _phase = MutableStateFlow(SplashPhase.SYNCING_LIST)
+    /** 초기화 단계. [SplashPhase.DONE]이면 메인으로 전환. */
+    val phase: StateFlow<SplashPhase> = _phase.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val minShow = launch { delay(MIN_SHOW_MS) } // 로고 최소 노출
+            _phase.value = SplashPhase.SYNCING_LIST
+            runCatching { syncStockMaster() }            // 종목 목록 동기화(무거운 작업)
+            _phase.value = SplashPhase.REFRESHING_PRICES
+            runCatching { refreshPrices() }              // 현재가 갱신
+            minShow.join()
+            _phase.value = SplashPhase.DONE
+        }
+    }
+
+    private companion object {
+        const val MIN_SHOW_MS = 1200L
+    }
+}
