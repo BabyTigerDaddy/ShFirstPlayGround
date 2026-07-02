@@ -80,18 +80,21 @@ class BackupRepository @Inject constructor(
         doc.get().await().exists()
     }.getOrDefault(false)
 
-    /** 로컬이 비어 있는지 — 새 폰 자동 복원 판단용. */
+    /**
+     * 로컬이 (실질적으로) 비어 있는지 — 새 폰/재설치 자동 복원 판단용.
+     * ★계좌는 첫 실행 시 기본 계좌가 자동 생성되므로 제외하고,
+     *   실제 사용자 기록(보유 종목·매도 내역)만으로 판정한다.
+     *   (계좌까지 보면 재설치 직후에도 "데이터 있음"으로 오판해 클라우드를 덮어쓴다.)
+     */
     suspend fun isLocalEmpty(): Boolean =
-        accountDao.getAll().isEmpty() && holdingDao.getAll().isEmpty() && soldRecordDao.getAll().isEmpty()
+        holdingDao.getAll().isEmpty() && soldRecordDao.getAll().isEmpty()
 
     /**
-     * 백업 켜기 — 새 폰(로컬 빔)이고 클라우드에 기록 있으면 복원, 아니면 로컬을 클라우드로 올림.
-     * 양쪽 다 있는 경우(로컬 있음+클라우드 있음)는 로컬 우선으로 백업(덮어쓰기는 별도 restore 버튼).
+     * 백업 켜기 — 플래그만 세운다. 실제 업로드/복원은 화면이 상황(hasCloudBackup·isLocalEmpty)을
+     * 보고 backup()/restore()를 명시적으로 호출한다.
+     * (자동으로 올리거나 내리면 되돌릴 수 없는 덮어쓰기가 날 수 있어 자동 동기화는 하지 않는다.)
      */
-    suspend fun enableAndSync(): Result<Unit> = runCatching {
-        store.enabled = true
-        if (isLocalEmpty() && hasCloudBackup()) restore().getOrThrow() else backup().getOrThrow()
-    }
+    fun enable() { store.enabled = true }
 
     /** 백업 끄기 — 클라우드 데이터는 두고 이 폰에서만 자동 백업 중단. */
     fun disable() { store.enabled = false }
