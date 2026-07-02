@@ -232,6 +232,28 @@ private fun BackupSection(vm: BackupViewModel) {
         }
         vm.message?.let { Text(it, fontSize = 12.sp, color = c.sub) }
     }
+    if (vm.conflict) {
+        AlertDialog(
+            onDismissRequest = { vm.dismissConflict() },
+            containerColor = Color.White,
+            titleContentColor = Color(0xFF16202E),
+            textContentColor = Color(0xFF4A5769),
+            title = { Text("어느 기록으로 이어갈까요?", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("클라우드 백업과 지금 폰, 둘 다에 기록이 있어요. 고르는 쪽이 반대쪽을 덮어써요 — 되돌릴 수 없어요.")
+                    OutlinedButton(onClick = { vm.resolveWithCloud() }, modifier = Modifier.fillMaxWidth()) {
+                        Text("클라우드 걸로 (폰 기록 덮어씀)", color = Color(0xFF16202E), fontWeight = FontWeight.Bold)
+                    }
+                    OutlinedButton(onClick = { vm.resolveWithLocal() }, modifier = Modifier.fillMaxWidth()) {
+                        Text("지금 폰 걸로 (클라우드 덮어씀)", color = Color(0xFF16202E), fontWeight = FontWeight.Bold)
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { vm.dismissConflict() }) { Text("나중에 정할게요", color = Color(0xFF4A5769)) } },
+        )
+    }
     if (confirmRestore) {
         AlertDialog(
             onDismissRequest = { confirmRestore = false },
