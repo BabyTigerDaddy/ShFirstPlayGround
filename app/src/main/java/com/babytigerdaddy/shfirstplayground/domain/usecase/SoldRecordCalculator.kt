@@ -4,12 +4,14 @@ import com.babytigerdaddy.shfirstplayground.domain.model.RealizedPoint
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldRecord
 import java.time.DayOfWeek
+import java.time.LocalDate
 
-/** 누적 실현손익을 끊어 볼 단위. */
-enum class PnlPeriod { WEEKLY, MONTHLY }
-
-/** 기간(주/월) 한 구간의 실현손익과 그때까지의 누적. */
-data class PeriodPnlPoint(val label: String, val realizedPnl: Long, val cumulative: Long)
+/** 판내역 실현손익 요약 — 스와이프 카드 [전체/이번주/이번달]용. 각 기간 실현손익 합 + 매도 건수. */
+data class RealizedByPeriod(
+    val allRealized: Long, val allCount: Int,
+    val weekRealized: Long, val weekCount: Int,
+    val monthRealized: Long, val monthCount: Int,
+)
 
 /**
  * 매도 내역 → 집계([SoldHistorySummary]) 순수 변환기.
@@ -17,27 +19,21 @@ data class PeriodPnlPoint(val label: String, val realizedPnl: Long, val cumulati
 object SoldRecordCalculator {
 
     /**
-     * 매도 내역을 주간/월간으로 묶어 각 구간 실현손익 + 누적을 반환.
-     * 판 내역 누적 그래프를 주/월 단위로 끊어 보여줄 때 쓴다(빈 구간은 건너뜀).
+     * 실현손익을 전체 / 이번주(이번 주 월요일~오늘) / 이번달(이번 달 1일~오늘)로 묶어
+     * 각 기간의 실현손익 합 + 매도 건수를 반환. 판내역 상단 스와이프 카드용.
      */
-    fun periodPoints(records: List<SoldRecord>, period: PnlPeriod): List<PeriodPnlPoint> {
-        if (records.isEmpty()) return emptyList()
-        val grouped = records.groupBy { r ->
-            when (period) {
-                PnlPeriod.WEEKLY -> r.soldDate.with(DayOfWeek.MONDAY) // 그 주 월요일
-                PnlPeriod.MONTHLY -> r.soldDate.withDayOfMonth(1)     // 그 달 1일
-            }
-        }.toSortedMap()
-        var running = 0L
-        return grouped.map { (start, recs) ->
-            val sum = recs.sumOf { it.realizedPnl }
-            running += sum
-            val label = when (period) {
-                PnlPeriod.WEEKLY -> "%d.%d 주".format(start.monthValue, start.dayOfMonth)
-                PnlPeriod.MONTHLY -> "%d월".format(start.monthValue)
-            }
-            PeriodPnlPoint(label = label, realizedPnl = sum, cumulative = running)
-        }
+    fun realizedByPeriod(records: List<SoldRecord>, asOf: LocalDate): RealizedByPeriod {
+        val weekStart = asOf.with(DayOfWeek.MONDAY)
+        val monthStart = asOf.withDayOfMonth(1)
+        fun inRange(from: LocalDate) =
+            records.filter { !it.soldDate.isBefore(from) && !it.soldDate.isAfter(asOf) }
+        val week = inRange(weekStart)
+        val month = inRange(monthStart)
+        return RealizedByPeriod(
+            allRealized = records.sumOf { it.realizedPnl }, allCount = records.size,
+            weekRealized = week.sumOf { it.realizedPnl }, weekCount = week.size,
+            monthRealized = month.sumOf { it.realizedPnl }, monthCount = month.size,
+        )
     }
 
     fun compute(records: List<SoldRecord>): SoldHistorySummary {
