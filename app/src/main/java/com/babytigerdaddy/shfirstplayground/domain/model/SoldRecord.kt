@@ -22,13 +22,15 @@ data class SoldRecord(
     val entryDate: LocalDate,
     val soldDate: LocalDate,
     val createdAt: LocalDateTime,
+    /** 실현손익 직접 보정값(원). null이면 매도가·수량으로 자동 계산, 값이 있으면 그 값을 실현손익으로 쓴다. */
+    val realizedOverride: Long? = null,
 ) {
-    /** 실현손익(원) = (매도가-매수가) × 수량. */
-    val realizedPnl: Long get() = (sellPrice - buyPrice) * quantity
+    /** 실현손익(원) — 보정값이 있으면 그 값, 없으면 (매도가-매수가) × 수량. */
+    val realizedPnl: Long get() = realizedOverride ?: (sellPrice - buyPrice) * quantity
 
-    /** 수익률 — (매도가-매수가)/매수가. 매수가 0이면 0. */
+    /** 수익률 — 실현손익 / 매수금액. 매수금액 0이면 0. (보정값 반영) */
     val returnRate: Double
-        get() = if (buyPrice <= 0) 0.0 else (sellPrice - buyPrice).toDouble() / buyPrice
+        get() = if (costAmount <= 0) 0.0 else realizedPnl.toDouble() / costAmount
 
     /** 매수금액(원). */
     val costAmount: Long get() = buyPrice * quantity

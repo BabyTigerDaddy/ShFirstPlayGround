@@ -20,6 +20,8 @@ data class SoldRecordEntity(
     val entryDate: LocalDate,
     val soldDate: LocalDate,
     val createdAt: LocalDateTime,
+    // 실현손익 직접 보정값 — v9→v10 마이그레이션 ADD COLUMN과 일치(기본 null=자동계산).
+    val realizedOverride: Long? = null,
 ) {
     fun toDomain(): SoldRecord = SoldRecord(
         id = id,
@@ -31,6 +33,7 @@ data class SoldRecordEntity(
         entryDate = entryDate,
         soldDate = soldDate,
         createdAt = createdAt,
+        realizedOverride = realizedOverride,
     )
 
     companion object {
@@ -44,6 +47,7 @@ data class SoldRecordEntity(
             entryDate = r.entryDate,
             soldDate = r.soldDate,
             createdAt = r.createdAt,
+            realizedOverride = r.realizedOverride,
         )
     }
 }

@@ -135,6 +135,7 @@ private fun SoldRecordEntity.toMap() = mapOf(
     "id" to id, "accountId" to accountId, "ticker" to ticker,
     "buyPrice" to buyPrice, "sellPrice" to sellPrice, "quantity" to quantity,
     "entryDate" to entryDate.toString(), "soldDate" to soldDate.toString(), "createdAt" to createdAt.toString(),
+    "realizedOverride" to realizedOverride,
 )
 
 private fun Map<String, Any?>.toSold() = SoldRecordEntity(
@@ -147,4 +148,5 @@ private fun Map<String, Any?>.toSold() = SoldRecordEntity(
     entryDate = LocalDate.parse(this["entryDate"] as String),
     soldDate = LocalDate.parse(this["soldDate"] as String),
     createdAt = LocalDateTime.parse(this["createdAt"] as String),
+    realizedOverride = (this["realizedOverride"] as? Number)?.toLong(),
 )

@@ -17,6 +17,7 @@ import androidx.room.TypeConverters
  *          기존 데이터 보존 마이그레이션([MIGRATION_6_7]) — 기본 계좌로 이어붙임.
  * v7 → v8: holding에 code(종목코드) 컬럼 — 시세 API 조회용([MIGRATION_7_8], 데이터 보존).
  * v8 → v9: StockMasterEntity(종목 마스터) 추가 — 이름→코드 검색용([MIGRATION_8_9], 데이터 보존).
+ * v9 → v10: sold_record에 realizedOverride(실현손익 직접 보정) 컬럼([MIGRATION_9_10], 데이터 보존).
  */
 @Database(
     entities = [
@@ -29,7 +30,7 @@ import androidx.room.TypeConverters
         AccountEntity::class,
         StockMasterEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

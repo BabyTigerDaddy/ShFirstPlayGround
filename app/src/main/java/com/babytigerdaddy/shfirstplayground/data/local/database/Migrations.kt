@@ -59,3 +59,15 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
         )
     }
 }
+
+/**
+ * v9 → v10: 매도내역에 realizedOverride(실현손익 직접 보정) 컬럼 추가.
+ * nullable — 기존 행은 null(자동 계산 유지)로 채워져 데이터 보존.
+ */
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE `sold_record` ADD COLUMN `realizedOverride` INTEGER",
+        )
+    }
+}
