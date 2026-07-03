@@ -110,6 +110,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     var editTarget by remember { mutableStateOf<Holding?>(null) }
     var delHolding by remember { mutableStateOf<Holding?>(null) }
     var delSold by remember { mutableStateOf<SoldRecord?>(null) }
+    var editSold by remember { mutableStateOf<SoldRecord?>(null) }
     var showAddAccount by remember { mutableStateOf(false) }
     var showRenameAccount by remember { mutableStateOf(false) }
     var showDeleteAccount by remember { mutableStateOf(false) }
@@ -169,7 +170,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                         }
                     }
                     1 -> allocationSection(allocation)
-                    else -> soldSection(sold, onDelete = { delSold = it })
+                    else -> soldSection(sold, onEdit = { editSold = it }, onDelete = { delSold = it })
                 }
             }
         }
@@ -193,6 +194,9 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     }
     delSold?.let { r ->
         DeleteConfirmDialog(label = "${r.ticker} 매도 내역", onConfirm = { viewModel.deleteSoldRecord(r.id); delSold = null }, onDismiss = { delSold = null })
+    }
+    editSold?.let { r ->
+        EditSoldDialog(record = r, onSave = { edited -> viewModel.updateSoldRecord(edited); editSold = null }, onDismiss = { editSold = null })
     }
     val curAccount = accounts.firstOrNull { it.id == selectedAccountId }
     if (showAddAccount) AccountNameDialog("새 계좌", "", onConfirm = { viewModel.addAccount(it); showAddAccount = false }, onDismiss = { showAddAccount = false })
@@ -423,7 +427,7 @@ private fun androidx.compose.foundation.layout.RowScope.TwoLineHead(top: String,
 }
 
 // ---------- 판 내역 ----------
-private fun androidx.compose.foundation.lazy.LazyListScope.soldSection(sold: SoldHistorySummary, onDelete: (SoldRecord) -> Unit) {
+private fun androidx.compose.foundation.lazy.LazyListScope.soldSection(sold: SoldHistorySummary, onEdit: (SoldRecord) -> Unit, onDelete: (SoldRecord) -> Unit) {
     if (sold.records.isEmpty()) {
         item {
             val c = LocalHoldingColors.current
@@ -481,7 +485,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.soldSection(sold: Sol
         val c = LocalHoldingColors.current
         Text("매도 내역  (길게 눌러 삭제)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.ink, modifier = Modifier.padding(top = 2.dp))
     }
-    items(sold.records, key = { it.id }) { r -> SoldRow(r, onDelete = onDelete) }
+    items(sold.records, key = { it.id }) { r -> SoldRow(r, onEdit = onEdit, onDelete = onDelete) }
 }
 
 @Composable
@@ -528,11 +532,11 @@ private fun RealizedSwipeCard(byPeriod: com.babytigerdaddy.shfirstplayground.dom
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun SoldRow(r: SoldRecord, onDelete: (SoldRecord) -> Unit) {
+private fun SoldRow(r: SoldRecord, onEdit: (SoldRecord) -> Unit, onDelete: (SoldRecord) -> Unit) {
     val c = LocalHoldingColors.current
-    val tone = pnlColor(r.netRealizedPnl)
+    val tone = pnlColor(r.realizedPnl)
     Card(
-        modifier = Modifier.fillMaxWidth().combinedClickable(onClick = {}, onLongClick = { onDelete(r) }),
+        modifier = Modifier.fillMaxWidth().combinedClickable(onClick = { onEdit(r) }, onLongClick = { onDelete(r) }),
         shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(1.5.dp),
     ) {
         Row(Modifier.fillMaxWidth().padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -546,8 +550,8 @@ private fun SoldRow(r: SoldRecord, onDelete: (SoldRecord) -> Unit) {
                 Text("${comma(r.buyPrice)} → ${comma(r.sellPrice)}  ·  ${r.soldDate.format(DateTimeFormatter.ofPattern("M/d"))} 매도", fontSize = 12.sp, color = c.faint)
             }
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(formatWon(r.netRealizedPnl), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = tone)
-                Text("${signed(r.netReturnRate)}%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = tone)
+                Text(formatWon(r.realizedPnl), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = tone)
+                Text("${signed(r.returnRate)}%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = tone)
             }
         }
     }
@@ -746,6 +750,44 @@ private fun SellDialog(holding: Holding, onConfirm: (sellPrice: Long, quantity: 
             }
         },
         confirmButton = { TextButton(onClick = { onConfirm(sellPrice, qty) }) { Text("매도", color = c.point) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = c.sub) } },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditSoldDialog(record: SoldRecord, onSave: (SoldRecord) -> Unit, onDismiss: () -> Unit) {
+    val c = LocalHoldingColors.current
+    var sellText by remember { mutableStateOf(record.sellPrice.toString()) }
+    var qtyText by remember { mutableStateOf(record.quantity.toString()) }
+    var overrideText by remember { mutableStateOf(record.realizedOverride?.toString() ?: "") }
+    val sell = sellText.filter { it.isDigit() }.toLongOrNull() ?: record.sellPrice
+    val qty = (qtyText.filter { it.isDigit() }.toIntOrNull() ?: record.quantity).coerceAtLeast(1)
+    val override = overrideText.trim().toLongOrNull()
+    val shownRealized = override ?: ((sell - record.buyPrice) * qty)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = c.card,
+        titleContentColor = c.ink,
+        textContentColor = c.sub,
+        title = { Text("${record.ticker} 매도 내역 수정", fontWeight = FontWeight.Bold, color = c.ink) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(sellText, { sellText = it.filter { d -> d.isDigit() }.take(12) }, singleLine = true, label = { Text("매도가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(qtyText, { qtyText = it.filter { d -> d.isDigit() }.take(9) }, singleLine = true, label = { Text("수량") }, suffix = { Text("주") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(overrideText, { overrideText = it.filter { d -> d.isDigit() || d == '-' }.take(13) }, singleLine = true, label = { Text("실현손익 직접 입력 (비우면 자동)") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                Text("실현손익 ${formatWon(shownRealized)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = pnlColor(shownRealized))
+                Text(
+                    if (override == null) "매도가·수량으로 자동 계산 중" else "직접 입력한 값으로 계산 중",
+                    fontSize = 11.sp, color = if (override == null) c.faint else c.point,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(record.copy(sellPrice = sell, quantity = qty, realizedOverride = override)) }) {
+                Text("저장", color = c.point)
+            }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = c.sub) } },
     )
 }
