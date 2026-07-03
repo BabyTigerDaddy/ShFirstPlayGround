@@ -815,6 +815,7 @@ private fun EditHoldingDialog(holding: Holding, viewModel: HoldingViewModel, onS
     var name by remember { mutableStateOf(holding.ticker) }
     var justPicked by remember { mutableStateOf(true) } // 처음엔 기존 종목명이라 후보 숨김
     var buy by remember { mutableStateOf(holding.buyPrice.toString()) }
+    var current by remember { mutableStateOf(holding.currentPrice.toString()) }
     var qty by remember { mutableStateOf(holding.quantity.toString()) }
     var entryDate by remember { mutableStateOf(holding.entryDate) }
     var showDate by remember { mutableStateOf(false) }
@@ -850,7 +851,8 @@ private fun EditHoldingDialog(holding: Holding, viewModel: HoldingViewModel, onS
                 }
                 OutlinedTextField(buy, { buy = it.filter { c -> c.isDigit() }.take(12) }, singleLine = true, label = { Text("매수가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(qty, { qty = it.filter { c -> c.isDigit() }.take(9) }, singleLine = true, label = { Text("수량") }, suffix = { Text("주") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
-                Text("현재가는 앱이 야후에서 자동으로 갱신해요.", fontSize = 11.sp, color = c.faint)
+                OutlinedTextField(current, { current = it.filter { c -> c.isDigit() }.take(12) }, singleLine = true, label = { Text("현재가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                Text("현재가는 보통 자동으로 갱신돼요. ETF처럼 자동으로 안 잡히는 종목만 여기서 직접 넣으면 돼요.", fontSize = 11.sp, color = c.faint)
                 OutlinedButton(onClick = { showDate = true }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
                     Text("편입일 · ${entryDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))}", color = c.ink)
                 }
@@ -863,9 +865,9 @@ private fun EditHoldingDialog(holding: Holding, viewModel: HoldingViewModel, onS
             TextButton(
                 onClick = {
                     val b = buy.filter { it.isDigit() }.toLongOrNull() ?: return@TextButton
+                    val cur = current.filter { it.isDigit() }.toLongOrNull() ?: holding.currentPrice
                     val q = qty.filter { it.isDigit() }.toIntOrNull()?.coerceAtLeast(1) ?: 1
-                    // 현재가는 편집하지 않음 — 앱 진입 시 야후에서 자동 갱신
-                    onSave(holding.copy(ticker = name.trim(), buyPrice = b, quantity = q, entryDate = entryDate))
+                    onSave(holding.copy(ticker = name.trim(), buyPrice = b, currentPrice = cur, quantity = q, entryDate = entryDate))
                 },
                 enabled = canSave,
             ) { Text("저장", color = c.point) }
