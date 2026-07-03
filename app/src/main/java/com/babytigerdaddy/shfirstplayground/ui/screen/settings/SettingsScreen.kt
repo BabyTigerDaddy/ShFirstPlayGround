@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.ProfitRed
 import com.babytigerdaddy.shfirstplayground.ui.theme.LocalHoldingColors
+import com.babytigerdaddy.shfirstplayground.ui.theme.ThemeMode
 import com.babytigerdaddy.shfirstplayground.ui.theme.ThemeShape
 
 /**
@@ -100,9 +101,33 @@ fun SettingsScreen(
             ) { viewModel.setShape(ThemeShape.SHARP) }
         }
 
+        Spacer(Modifier.height(24.dp))
+        SectionLabel("화이트/다크")
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ThemeModeOption(
+                title = "시스템",
+                desc = "폰 설정 따라",
+                selected = settings.themeMode == ThemeMode.SYSTEM,
+                modifier = Modifier.weight(1f),
+            ) { viewModel.setThemeMode(ThemeMode.SYSTEM) }
+            ThemeModeOption(
+                title = "라이트",
+                desc = "밝게 고정",
+                selected = settings.themeMode == ThemeMode.LIGHT,
+                modifier = Modifier.weight(1f),
+            ) { viewModel.setThemeMode(ThemeMode.LIGHT) }
+            ThemeModeOption(
+                title = "다크",
+                desc = "어둡게 고정",
+                selected = settings.themeMode == ThemeMode.DARK,
+                modifier = Modifier.weight(1f),
+            ) { viewModel.setThemeMode(ThemeMode.DARK) }
+        }
+
         Spacer(Modifier.height(20.dp))
         Text(
-            "모양은 고른 즉시 적용·저장돼요. 화이트/다크는 폰 설정을 따라 자동으로 바뀌고, 오름 빨강·내림 파랑은 항상 그대로예요.",
+            "모양·화이트/다크는 고른 즉시 적용·저장돼요. 기본은 폰 설정을 따라가고, 라이트·다크로 고정할 수도 있어요. 오름 빨강·내림 파랑은 어느 테마든 그대로예요.",
             fontSize = 12.sp, color = c.faint,
         )
         Spacer(Modifier.height(28.dp))
@@ -306,6 +331,33 @@ private fun ShapeOption(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = c.ink)
             if (selected) Text("✓", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = c.point)
+        }
+        Text(desc, fontSize = 11.sp, color = c.faint)
+    }
+}
+
+// ---------- 화이트/다크 모드 옵션 (시스템/라이트/다크) ----------
+@Composable
+private fun ThemeModeOption(
+    title: String,
+    desc: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val c = LocalHoldingColors.current
+    Column(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.medium)
+            .background(c.card)
+            .border(BorderStroke(if (selected) 2.dp else 1.dp, if (selected) c.point else c.line), MaterialTheme.shapes.medium)
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = c.ink)
+            if (selected) Text("✓", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = c.point)
         }
         Text(desc, fontSize = 11.sp, color = c.faint)
     }
