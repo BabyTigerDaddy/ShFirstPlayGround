@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.babytigerdaddy.shfirstplayground.ui.ads.EntryAdGate
 import com.babytigerdaddy.shfirstplayground.ui.screen.holding.HoldingScreen
 import com.babytigerdaddy.shfirstplayground.ui.screen.splash.SplashPhase
 import com.babytigerdaddy.shfirstplayground.ui.screen.splash.SplashScreen
@@ -26,5 +27,7 @@ fun AppNavigation() {
         SplashScreen(statusText = statusText)
     } else {
         HoldingScreen()
+        // 로딩 끝나고 보유 탭 메인에 진입하는 이 시점에만 광고 팝업(하루 한 번).
+        EntryAdGate()
     }
 }
