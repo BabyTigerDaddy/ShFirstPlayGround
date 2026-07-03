@@ -39,12 +39,12 @@ data class HoldingColors(
 
 // LIGHT = 현재 보유노트 화면 색(기준). point는 브랜드 보라(아이콘 그래디언트 끝색)로 통일.
 val LightHoldingColors = HoldingColors(
-    bg = Color(0xFFEDEFF3),
+    bg = Color(0xFFF7F8FA),   // 카톡처럼 밝은 화이트톤 (파란 회색빛 제거, 카드는 그림자로 구분)
     card = Color(0xFFFFFFFF),
     ink = Color(0xFF0E1216),
     sub = Color(0xFF4B5562),
     faint = Color(0xFF818B99),
-    line = Color(0xFFE2E6EC),
+    line = Color(0xFFE8EBEF),
     point = Color(0xFF6C5CE7),   // 브랜드 보라 (민트→보라 그래디언트 끝)
     pointBg = Color(0xFFEAE7FB),
 )
