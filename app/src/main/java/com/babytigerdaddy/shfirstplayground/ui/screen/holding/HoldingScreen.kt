@@ -813,7 +813,19 @@ private fun EditSoldDialog(record: SoldRecord, onSave: (SoldRecord) -> Unit, onD
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(sellText, { sellText = it.filter { d -> d.isDigit() }.take(12) }, singleLine = true, label = { Text("매도가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(qtyText, { qtyText = it.filter { d -> d.isDigit() }.take(9) }, singleLine = true, label = { Text("수량") }, suffix = { Text("주") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(overrideText, { overrideText = it.filter { d -> d.isDigit() || d == '-' }.take(13) }, singleLine = true, label = { Text("실현손익 직접 입력 (비우면 자동)") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    overrideText,
+                    { input ->
+                        // 손실은 음수 — 맨 앞 '-' 하나만 허용하고 나머지는 숫자만
+                        val digits = input.filter { it.isDigit() }
+                        overrideText = (if (input.trimStart().startsWith("-")) "-$digits" else digits).take(13)
+                    },
+                    singleLine = true,
+                    label = { Text("실현손익 직접 입력 (손실은 - 붙여서, 비우면 자동)") },
+                    suffix = { Text("원") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Text("실현손익 ${formatWon(shownRealized)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = pnlColor(shownRealized))
                 Text(
                     if (override == null) "매도가·수량으로 자동 계산 중" else "직접 입력한 값으로 계산 중",
