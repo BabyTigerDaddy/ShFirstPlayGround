@@ -395,8 +395,8 @@ private fun HoldingTable(holdings: List<Holding>, autoCodes: Set<String>, onEdit
                 ) {
                     Column(Modifier.weight(1.5f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(h.ticker, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = c.ink)
-                        // 자동 시세가 안 잡히는 종목(ETF 등)만 '수동' 표시 — autoCodes 채워진 뒤에만
-                        if (autoCodes.isNotEmpty() && h.code.isNotBlank() && h.code !in autoCodes) {
+                        // 자동 시세가 안 잡히는 종목(ETF·검색 안 되는 것 = code 없음 포함)만 '수동' — autoCodes 채워진 뒤에만
+                        if (autoCodes.isNotEmpty() && h.code !in autoCodes) {
                             Box(Modifier.clip(MaterialTheme.shapes.small).background(c.pointBg).padding(horizontal = 5.dp, vertical = 1.dp)) {
                                 Text("✎ 수동", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = c.point)
                             }
