@@ -383,7 +383,7 @@ private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onD
                 TwoLineHead("평가손익", "수익률", 1.6f)
             }
             holdings.forEachIndexed { idx, h ->
-                if (idx > 0) Box(Modifier.fillMaxWidth().padding(horizontal = 12.dp).height(1.dp).background(c.line))
+                if (idx > 0) Box(Modifier.fillMaxWidth().padding(horizontal = 12.dp).height(1.dp).background(c.faint.copy(alpha = 0.22f)))
                 val tone = pnlColor(h.evalPnl)
                 val days = h.holdingDays(LocalDate.now())
                 Row(
