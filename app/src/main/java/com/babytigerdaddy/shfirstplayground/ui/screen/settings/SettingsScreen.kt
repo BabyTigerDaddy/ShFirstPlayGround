@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.babytigerdaddy.shfirstplayground.ui.screen.trade.LossBlue
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.ProfitRed
 import com.babytigerdaddy.shfirstplayground.ui.theme.LocalHoldingColors
 import com.babytigerdaddy.shfirstplayground.ui.theme.ThemeShape
@@ -82,9 +81,6 @@ fun SettingsScreen(
         AccountSection()
 
         Spacer(Modifier.height(24.dp))
-        PreviewCard()
-
-        Spacer(Modifier.height(24.dp))
         SectionLabel("모양")
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -110,41 +106,6 @@ fun SettingsScreen(
             fontSize = 12.sp, color = c.faint,
         )
         Spacer(Modifier.height(28.dp))
-    }
-}
-
-// ---------- 미리보기 (현재 조합이 실제로 이렇게 보인다) ----------
-@Composable
-private fun PreviewCard() {
-    val c = LocalHoldingColors.current
-    Column(
-        modifier = Modifier.fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .background(c.card)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(11.dp),
-    ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("보유노트", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
-            Box(Modifier.clip(MaterialTheme.shapes.small).background(c.pointBg).padding(horizontal = 9.dp, vertical = 4.dp)) {
-                Text("미리보기", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = c.point)
-            }
-        }
-        MiniRow("삼성전자", "72,000원", "+1.42%", ProfitRed)
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.line))
-        MiniRow("카카오", "38,900원", "-2.10%", LossBlue)
-    }
-}
-
-@Composable
-private fun MiniRow(name: String, price: String, rate: String, rateColor: androidx.compose.ui.graphics.Color) {
-    val c = LocalHoldingColors.current
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = c.ink)
-            Text(price, fontSize = 12.sp, color = c.sub)
-        }
-        Text(rate, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = rateColor)
     }
 }
 
