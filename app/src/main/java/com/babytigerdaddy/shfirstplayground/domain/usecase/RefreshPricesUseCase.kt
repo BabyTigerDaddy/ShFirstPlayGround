@@ -6,10 +6,14 @@ import com.babytigerdaddy.shfirstplayground.domain.repository.StockPriceSource
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-/** 시세 갱신 결과 — 받아온 종목 수 + 자동 시세가 잡힌 종목코드 집합. */
+/** 시세 갱신 결과 — 받아온 종목 수 + 자동 시세 '대상' 종목코드 집합. */
 data class RefreshResult(
     val fetchedCount: Int,
-    /** 야후에서 시세가 자동으로 잡힌 종목코드들. 여기 없으면 '수동'(ETF 등 직접 입력). */
+    /**
+     * 자동 시세 '대상' 종목코드들 — 코드가 있고 종목 목록에서 시장(.KS/.KQ)이 찾아지는 종목.
+     * 이번 시세를 일시적으로 못 받아도 대상이면 포함(자동 종목이 순간 실패로 '수동'으로 뒤집히지 않게).
+     * 여기 없으면 '수동'(ETF 등 코드/시장 없어 직접 입력해야 하는 것).
+     */
     val autoCodes: Set<String>,
 )
 
@@ -31,9 +35,10 @@ class RefreshPricesUseCase @Inject constructor(
         for (h in holdings) {
             // 시장(.KS/.KQ)이 있어야 정확한 값 — 종목 마스터에서 판별. 없으면 건너뜀(엉뚱한 값 방지).
             val market = stockMasterRepository.getByCode(h.code)?.market ?: continue
+            // 코드+시장이 확인된 종목은 '자동 대상' — 이번 시세를 못 받아도 자동으로 표시(순간 실패로 '수동' 뒤집힘 방지).
+            autoCodes.add(h.code)
             val price = priceSource.fetchPrice(h.code, market) ?: continue
             fetched++
-            autoCodes.add(h.code)
             if (price != h.currentPrice) {
                 holdingRepository.save(h.copy(currentPrice = price))
             }
