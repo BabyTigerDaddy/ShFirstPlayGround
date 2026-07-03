@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.babytigerdaddy.shfirstplayground.ui.ads.EntryAdGate
 import com.babytigerdaddy.shfirstplayground.ui.navigation.AppNavigation
 import com.babytigerdaddy.shfirstplayground.ui.theme.ShFirstPlayGroundTheme
 import com.babytigerdaddy.shfirstplayground.ui.theme.ThemeController
@@ -56,6 +57,8 @@ class MainActivity : ComponentActivity() {
                 )
                 ShFirstPlayGroundTheme(settings = effective) {
                     AppNavigation()
+                    // 진입 시 하루 한 번 광고 다이얼로그(Dialog라 화면 위에 뜸).
+                    EntryAdGate()
                 }
             }
         }
