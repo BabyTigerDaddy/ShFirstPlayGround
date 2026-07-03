@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -77,13 +79,19 @@ fun EntryAdGate() {
 
 @Composable
 private fun EntryAdDialog(onClose: () -> Unit) {
-    Dialog(onDismissRequest = onClose) {
+    // usePlatformDefaultWidth=false — 기본 다이얼로그 폭 제약을 풀어야 300dp 광고가
+    // 작은 화면에서도 안 잘린다. Surface는 콘텐츠(광고 300 + 좌우 여백)에 맞춰 감싼다.
+    Dialog(
+        onDismissRequest = onClose,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 6.dp,
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            // 광고 300 + 좌우 여백 16씩 = 332dp 폭. 세로는 내용에 맞춰 감싼다.
+            Column(modifier = Modifier.width(332.dp).padding(16.dp)) {
                 // 상단: 타이틀 + X 닫기
                 Row(
                     modifier = Modifier.fillMaxWidth(),
