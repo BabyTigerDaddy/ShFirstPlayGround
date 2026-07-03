@@ -98,6 +98,7 @@ private val DaysBadgeFg = Color(0xFF15883F)
 @Composable
 fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     val summary by viewModel.summary.collectAsStateWithLifecycle()
+    val autoPriceCodes by viewModel.autoPriceCodes.collectAsStateWithLifecycle()
     val sold by viewModel.soldHistory.collectAsStateWithLifecycle()
     val allocation by viewModel.allocation.collectAsStateWithLifecycle()
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
@@ -166,7 +167,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                             item { Text(text = "들고 있는 종목을 추가하면\n표로 한눈에 보여요.", fontSize = 14.sp, color = c.sub, modifier = Modifier.padding(top = 6.dp)) }
                         } else {
                             item { Text(text = "행 탭 → 편집 · 길게 눌러 삭제", fontSize = 11.sp, color = c.faint) }
-                            item { HoldingTable(summary.holdings, onEdit = { editTarget = it }, onDelete = { delHolding = it }) }
+                            item { HoldingTable(summary.holdings, autoCodes = autoPriceCodes, onEdit = { editTarget = it }, onDelete = { delHolding = it }) }
                         }
                     }
                     1 -> {
@@ -371,7 +372,7 @@ private fun AccountNameDialog(title: String, initial: String, onConfirm: (String
 // ---------- 보유 중 (표) ----------
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onDelete: (Holding) -> Unit) {
+private fun HoldingTable(holdings: List<Holding>, autoCodes: Set<String>, onEdit: (Holding) -> Unit, onDelete: (Holding) -> Unit) {
     val c = LocalHoldingColors.current
     Card(shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
         Column {
@@ -392,7 +393,15 @@ private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onD
                         .padding(horizontal = 12.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(Modifier.weight(1.5f)) { Text(h.ticker, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = c.ink) }
+                    Column(Modifier.weight(1.5f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(h.ticker, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = c.ink)
+                        // 자동 시세가 안 잡히는 종목(ETF 등)만 '수동' 표시 — autoCodes 채워진 뒤에만
+                        if (autoCodes.isNotEmpty() && h.code.isNotBlank() && h.code !in autoCodes) {
+                            Box(Modifier.clip(MaterialTheme.shapes.small).background(c.pointBg).padding(horizontal = 5.dp, vertical = 1.dp)) {
+                                Text("✎ 수동", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = c.point)
+                            }
+                        }
+                    }
                     // 매입가 / 현재가
                     Column(Modifier.weight(1.4f), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         Text(comma(h.buyPrice), fontSize = 13.sp, color = c.sub)
