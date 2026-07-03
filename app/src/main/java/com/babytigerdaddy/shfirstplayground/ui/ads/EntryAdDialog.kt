@@ -16,7 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,20 +59,20 @@ private fun markShownToday(context: Context) {
 }
 
 /**
- * 하루 한 번 게이트. 오늘 아직 안 떴으면 다이얼로그를 띄우고, 뜬 순간 오늘 날짜를 기록한다
- * (그래서 노출 직후 앱을 죽여도 오늘은 재노출 안 됨).
+ * 하루 한 번 게이트. 오늘 아직 안 닫았으면 다이얼로그를 띄운다. 기록은 X로 '닫을 때'만 —
+ * 그래야 닫기 전까진 계속 떠 있고, 실제로 닫아야 오늘 카운트가 된다(뜨자마자 기록하면
+ * 앱을 죽여도 본 걸로 쳐서, 못 본 채로 그날 내내 안 뜨는 문제가 생김).
  */
 @Composable
 fun EntryAdGate() {
     val context = LocalContext.current
     var show by remember { mutableStateOf(shouldShowToday(context)) }
 
-    LaunchedEffect(show) {
-        if (show) markShownToday(context)
-    }
-
     if (show) {
-        EntryAdDialog(onClose = { show = false })
+        EntryAdDialog(onClose = {
+            markShownToday(context)
+            show = false
+        })
     }
 }
 
