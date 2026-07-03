@@ -46,7 +46,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -117,8 +116,8 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     var showDeleteAccount by remember { mutableStateOf(false) }
     val c = LocalHoldingColors.current
 
-    // 앱 진입 시 저장된 종목 현재가를 야후에서 자동 갱신
-    LaunchedEffect(Unit) { viewModel.refreshPrices() }
+    // 시세 갱신은 로딩(스플래시)에서 한 번만 — 보유 탭 진입 때 또 돌면 '업데이트 중'이 두 번 떠서 뺐다.
+    // 갱신은 상단 새로고침 버튼, 또는 종목 추가·편집 시 자동으로 돈다.
 
     Scaffold(
         containerColor = c.bg,

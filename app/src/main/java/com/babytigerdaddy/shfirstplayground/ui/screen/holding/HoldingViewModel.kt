@@ -127,8 +127,7 @@ class HoldingViewModel @Inject constructor(
                 stockMasterRepository.saveAll(StockSeed.list)
             }
         }
-        // 앱 진입 시 전종목 목록 동기화(버전 바뀐 날만 실제 다운로드).
-        syncStockMaster()
+        // 종목 목록 동기화·시세 갱신은 로딩(스플래시)에서 한 번만 한다 — 보유 화면 진입 때 또 돌면 중복.
     }
 
     /**
@@ -152,9 +151,20 @@ class HoldingViewModel @Inject constructor(
         }
     }
 
-    /** 자동 시세가 잡히는 종목코드들 — 여기 없는 보유 종목은 '수동'(ETF 등, 화면에 배지). */
-    private val _autoPriceCodes = MutableStateFlow<Set<String>>(emptySet())
-    val autoPriceCodes: StateFlow<Set<String>> = _autoPriceCodes.asStateFlow()
+    /**
+     * 자동 시세가 잡히는 종목코드들 — 코드가 있고 종목 목록에서 시장(.KS/.KQ)이 찾아지는 종목.
+     * 여기 없는 보유 종목은 '수동'(ETF 등, 화면에 배지).
+     * 시세 fetch와 무관하게 (보유 종목 + 종목 목록)으로만 정해지므로, 시세 갱신 없이도 정확하다
+     * — 보유 화면 진입 때 시세를 다시 안 받아도 배지가 맞게 뜬다.
+     */
+    val autoPriceCodes: StateFlow<Set<String>> = repository.observeAll()
+        .map { holdings ->
+            holdings.filter { it.code.isNotBlank() }
+                .filter { stockMasterRepository.getByCode(it.code)?.market != null }
+                .map { it.code }
+                .toSet()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
     /**
      * 시세 자동 갱신 — 앱 진입/새로고침 시 호출. 종목코드 있는 보유 종목 현재가를 시세 소스에서 받아 갱신.
@@ -165,7 +175,6 @@ class HoldingViewModel @Inject constructor(
         viewModelScope.launch {
             _priceRefresh.update { it.copy(loading = true) }
             val result = runCatching { refreshPricesUseCase() }.getOrNull()
-            if (result != null) _autoPriceCodes.value = result.autoCodes
             _priceRefresh.value = PriceRefreshState(
                 loading = false,
                 lastUpdated = if (result != null) LocalDateTime.now() else _priceRefresh.value.lastUpdated,
