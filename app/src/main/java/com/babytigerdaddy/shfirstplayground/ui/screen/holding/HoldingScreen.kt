@@ -75,6 +75,8 @@ import com.babytigerdaddy.shfirstplayground.domain.model.Holding
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldRecord
 import com.babytigerdaddy.shfirstplayground.domain.usecase.SoldRecordCalculator
+import com.babytigerdaddy.shfirstplayground.ui.ads.AdmobBanner
+import com.babytigerdaddy.shfirstplayground.ui.ads.AdmobBannerSize
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.CumulativeLineChart
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.LossBlue
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.ProfitRed
@@ -121,7 +123,26 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
 
     Scaffold(
         containerColor = c.bg,
-        bottomBar = { HoldingBottomBar(tab = tab, onSelect = { tab = it }) },
+        bottomBar = {
+            Column {
+                // 각 탭에 데이터가 있을 때만 하단에 얇은 배너(320x50). 빈 화면엔 안 뜬다(아빠 요청).
+                // 콘텐츠는 Scaffold가 이 배너 높이만큼 띄워줘서 안 가려진다. 설정 탭(3)은 광고 없음.
+                val showTabBanner = when (tab) {
+                    0, 1 -> summary.holdings.isNotEmpty() // 보유 있으면 보유·배분 탭에
+                    2 -> sold.records.isNotEmpty()         // 판 기록 1개 이상일 때만
+                    else -> false                          // 설정 제외
+                }
+                if (showTabBanner) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().background(c.card),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        AdmobBanner(size = AdmobBannerSize.BANNER)
+                    }
+                }
+                HoldingBottomBar(tab = tab, onSelect = { tab = it })
+            }
+        },
     ) { inner ->
         if (tab == 3) {
             SettingsScreen(embedded = true, modifier = Modifier.padding(inner))
