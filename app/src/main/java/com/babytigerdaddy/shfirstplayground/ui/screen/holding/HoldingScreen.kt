@@ -123,26 +123,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
 
     Scaffold(
         containerColor = c.bg,
-        bottomBar = {
-            Column {
-                // 각 탭에 데이터가 있을 때만 하단에 얇은 배너(320x50). 빈 화면엔 안 뜬다(아빠 요청).
-                // 콘텐츠는 Scaffold가 이 배너 높이만큼 띄워줘서 안 가려진다. 설정 탭(3)은 광고 없음.
-                val showTabBanner = when (tab) {
-                    0, 1 -> summary.holdings.isNotEmpty() // 보유 있으면 보유·배분 탭에
-                    2 -> sold.records.isNotEmpty()         // 판 기록 1개 이상일 때만
-                    else -> false                          // 설정 제외
-                }
-                if (showTabBanner) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().background(c.card),
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        AdmobBanner(size = AdmobBannerSize.BANNER)
-                    }
-                }
-                HoldingBottomBar(tab = tab, onSelect = { tab = it })
-            }
-        },
+        bottomBar = { HoldingBottomBar(tab = tab, onSelect = { tab = it }) },
     ) { inner ->
         if (tab == 3) {
             SettingsScreen(embedded = true, modifier = Modifier.padding(inner))
@@ -188,13 +169,18 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                         } else {
                             item { Text(text = "행 탭 → 편집 · 길게 눌러 삭제", fontSize = 11.sp, color = c.faint) }
                             item { HoldingTable(summary.holdings, autoCodes = autoPriceCodes, onEdit = { editTarget = it }, onDelete = { delHolding = it }) }
+                            pageBannerItem() // 종목 리스트 끝 — 항목 있을 때만(else 블록)이라 빈 화면엔 자연히 없음
                         }
                     }
                     1 -> {
                         item { CashInputCard(accounts = accounts, selectedId = selectedAccountId, onSetCash = viewModel::setCash) }
                         allocationSection(allocation)
+                        if (summary.holdings.isNotEmpty()) pageBannerItem() // 배분 내용 맨 아래
                     }
-                    else -> soldSection(sold, onEdit = { editSold = it }, onDelete = { delSold = it })
+                    else -> {
+                        soldSection(sold, onEdit = { editSold = it }, onDelete = { delSold = it })
+                        if (sold.records.isNotEmpty()) pageBannerItem() // 매도 리스트 끝
+                    }
                 }
             }
         }
@@ -226,6 +212,21 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     if (showAddAccount) AccountNameDialog("새 계좌", "", onConfirm = { viewModel.addAccount(it); showAddAccount = false }, onDismiss = { showAddAccount = false })
     if (showRenameAccount) AccountNameDialog("계좌 이름 변경", curAccount?.name ?: "", onConfirm = { viewModel.renameAccount(selectedAccountId, it); showRenameAccount = false }, onDismiss = { showRenameAccount = false })
     if (showDeleteAccount) DeleteConfirmDialog(label = "'${curAccount?.name ?: "계좌"}' 계좌 (종목·판내역 포함)", onConfirm = { viewModel.deleteAccount(selectedAccountId); showDeleteAccount = false }, onDismiss = { showDeleteAccount = false })
+}
+
+/**
+ * 각 탭 스크롤 콘텐츠 맨 끝에 붙는 얇은 배너(320x50). 항목이 있을 때만 호출해서,
+ * 리스트 끝 표시 겸 광고 역할. 빈 화면엔 호출 안 하니 자연히 안 뜬다.
+ */
+private fun androidx.compose.foundation.lazy.LazyListScope.pageBannerItem() {
+    item {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            AdmobBanner(size = AdmobBannerSize.BANNER)
+        }
+    }
 }
 
 @Composable
