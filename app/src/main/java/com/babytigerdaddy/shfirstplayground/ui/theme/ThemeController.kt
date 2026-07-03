@@ -7,10 +7,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** 현재 선택된 테마(모양·색). */
+/** 현재 선택된 테마(모양·색·화이트/다크 모드). */
 data class ThemeSettings(
     val shape: ThemeShape = ThemeShape.SOFT,
     val palette: ThemePalette = ThemePalette.LIGHT,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
 )
 
 /**
@@ -23,7 +24,7 @@ data class ThemeSettings(
 class ThemeController @Inject constructor(
     private val store: ThemePreferenceStore,
 ) {
-    private val _settings = MutableStateFlow(ThemeSettings(store.shape, store.palette))
+    private val _settings = MutableStateFlow(ThemeSettings(store.shape, store.palette, store.themeMode))
     val settings: StateFlow<ThemeSettings> = _settings.asStateFlow()
 
     fun setShape(shape: ThemeShape) {
@@ -34,5 +35,11 @@ class ThemeController @Inject constructor(
     fun setPalette(palette: ThemePalette) {
         store.palette = palette
         _settings.value = _settings.value.copy(palette = palette)
+    }
+
+    /** 화이트/다크 모드(시스템/라이트/다크) 선택 — 즉시 반영 + 기기 저장. */
+    fun setThemeMode(mode: ThemeMode) {
+        store.themeMode = mode
+        _settings.value = _settings.value.copy(themeMode = mode)
     }
 }
