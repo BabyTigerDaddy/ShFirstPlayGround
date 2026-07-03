@@ -12,7 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +36,10 @@ import androidx.compose.ui.window.DialogProperties
  */
 @Composable
 fun EntryAdGate() {
-    var show by remember { mutableStateOf(true) }
+    // rememberSaveable — 화면 회전·다크모드 변경(configuration change)으로 Activity가 재생성돼도
+    // '닫음' 상태(false)가 유지된다. 그래서 한 번 X로 닫으면 회전하든 테마 바꾸든 다시 안 뜨고,
+    // 프로세스가 완전히 죽고 앱을 새로 켤 때만 true로 초기화돼 다시 뜬다(아빠 요구 그대로).
+    var show by rememberSaveable { mutableStateOf(true) }
 
     if (show) {
         EntryAdDialog(onClose = { show = false })
