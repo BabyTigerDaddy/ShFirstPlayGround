@@ -152,6 +152,10 @@ class HoldingViewModel @Inject constructor(
         }
     }
 
+    /** 자동 시세가 잡히는 종목코드들 — 여기 없는 보유 종목은 '수동'(ETF 등, 화면에 배지). */
+    private val _autoPriceCodes = MutableStateFlow<Set<String>>(emptySet())
+    val autoPriceCodes: StateFlow<Set<String>> = _autoPriceCodes.asStateFlow()
+
     /**
      * 시세 자동 갱신 — 앱 진입/새로고침 시 호출. 종목코드 있는 보유 종목 현재가를 시세 소스에서 받아 갱신.
      * 이미 갱신 중이면 무시(중복 방지).
@@ -160,12 +164,13 @@ class HoldingViewModel @Inject constructor(
         if (_priceRefresh.value.loading) return
         viewModelScope.launch {
             _priceRefresh.update { it.copy(loading = true) }
-            val fetched = runCatching { refreshPricesUseCase() }.getOrNull()
+            val result = runCatching { refreshPricesUseCase() }.getOrNull()
+            if (result != null) _autoPriceCodes.value = result.autoCodes
             _priceRefresh.value = PriceRefreshState(
                 loading = false,
-                lastUpdated = if (fetched != null) LocalDateTime.now() else _priceRefresh.value.lastUpdated,
-                lastFetchedCount = fetched ?: 0,
-                failed = fetched == null,
+                lastUpdated = if (result != null) LocalDateTime.now() else _priceRefresh.value.lastUpdated,
+                lastFetchedCount = result?.fetchedCount ?: 0,
+                failed = result == null,
             )
         }
     }
