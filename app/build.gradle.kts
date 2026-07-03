@@ -96,6 +96,9 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.compose.charts)
 
+    // 애드몹 — 앱 진입 다이얼로그 배너 광고
+    implementation(libs.play.services.ads)
+
     testImplementation(libs.junit)
 
     debugImplementation(libs.androidx.ui.tooling)

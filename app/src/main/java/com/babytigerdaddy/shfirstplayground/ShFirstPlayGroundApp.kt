@@ -2,6 +2,7 @@ package com.babytigerdaddy.shfirstplayground
 
 import android.app.Application
 import android.content.Context
+import com.google.android.gms.ads.MobileAds
 import dagger.hilt.android.HiltAndroidApp
 import java.io.File
 import java.io.PrintWriter
@@ -15,6 +16,12 @@ class ShFirstPlayGroundApp : Application() {
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
         installCrashLogger()
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        // 애드몹 SDK 초기화. 백그라운드에서 한 번만 돌면 이후 배너/전면 광고 로드가 됨.
+        MobileAds.initialize(this)
     }
 
     private fun installCrashLogger() {
