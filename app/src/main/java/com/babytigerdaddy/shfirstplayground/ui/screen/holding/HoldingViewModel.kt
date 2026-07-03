@@ -202,15 +202,24 @@ class HoldingViewModel @Inject constructor(
             .map(SoldRecordCalculator::compute)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SoldHistorySummary.EMPTY)
 
-    /** 자산 배분(선택 계좌). */
-    val allocation: StateFlow<AssetAllocation> = accountHoldings
-        .map(AllocationCalculator::compute)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssetAllocation.EMPTY)
+    /** 자산 배분(선택 계좌) — 현금 잔액을 포함해 '현금 비중'까지 보인다('전체'면 계좌 현금 합산). */
+    val allocation: StateFlow<AssetAllocation> =
+        combine(accountHoldings, accounts, _selectedAccountId) { holdings, accts, selId ->
+            val cash = if (selId == Account.ALL_ID) accts.sumOf { it.cash }
+            else accts.firstOrNull { it.id == selId }?.cash ?: 0L
+            AllocationCalculator.compute(holdings, cash)
+        }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssetAllocation.EMPTY)
 
     // ---------- 계좌 ----------
 
     fun selectAccount(id: String) {
         _selectedAccountId.value = id
+    }
+
+    /** 계좌 현금 잔액 설정 — 자산 배분 '현금 비중'에 반영(수익률 계산엔 미포함). */
+    fun setCash(accountId: String, cash: Long) {
+        viewModelScope.launch { accountRepository.updateCash(accountId, cash) }
     }
 
     /** 새 계좌 추가하고 그 계좌로 전환. */

@@ -28,4 +28,8 @@ interface AccountDao {
     /** 복원용 — 전체 삭제(클라우드 데이터로 덮어쓰기 전). */
     @Query("DELETE FROM account")
     suspend fun clearAll()
+
+    /** 계좌 현금 잔액 갱신. */
+    @Query("UPDATE account SET cash = :cash WHERE id = :id")
+    suspend fun updateCash(id: String, cash: Long)
 }

@@ -17,4 +17,7 @@ interface AccountRepository {
 
     /** 삭제. */
     suspend fun delete(id: String)
+
+    /** 현금 잔액 갱신. */
+    suspend fun updateCash(id: String, cash: Long)
 }

@@ -71,3 +71,12 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
         )
     }
 }
+
+// 계좌에 현금 잔액 컬럼 추가 — 자산 배분 '현금 비중'용. 기존 계좌는 0으로.
+val MIGRATION_10_11 = object : Migration(10, 11) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE `account` ADD COLUMN `cash` INTEGER NOT NULL DEFAULT 0",
+        )
+    }
+}

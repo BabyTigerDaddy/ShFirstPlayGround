@@ -77,7 +77,10 @@ object SoldRecordCalculator {
         val saleCount = records.size
         val winCount = records.count { it.isWin }
         val winRate = winCount.toDouble() / saleCount
-        val avgReturnRate = records.sumOf { it.returnRate } / saleCount
+        // 투자 대비 수익률 = 총 실현손익 ÷ 총 투자금(매수금액 합).
+        // 건별 수익률 단순 평균은 큰돈·푼돈 건을 같은 무게로 넣어 왜곡되므로 금액 가중으로 계산.
+        val totalCost = records.sumOf { it.costAmount }
+        val avgReturnRate = if (totalCost <= 0) 0.0 else running.toDouble() / totalCost
 
         return SoldHistorySummary(
             totalRealized = running,

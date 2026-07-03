@@ -11,6 +11,7 @@ import com.babytigerdaddy.shfirstplayground.data.local.database.MIGRATION_6_7
 import com.babytigerdaddy.shfirstplayground.data.local.database.MIGRATION_7_8
 import com.babytigerdaddy.shfirstplayground.data.local.database.MIGRATION_8_9
 import com.babytigerdaddy.shfirstplayground.data.local.database.MIGRATION_9_10
+import com.babytigerdaddy.shfirstplayground.data.local.database.MIGRATION_10_11
 import com.babytigerdaddy.shfirstplayground.data.local.database.StockMasterDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.MonthlyGoalDao
 import com.babytigerdaddy.shfirstplayground.data.local.database.SoldRecordDao
@@ -34,7 +35,7 @@ object DatabaseModule {
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, DB_NAME)
             // 다중계좌(6→7)·종목코드(7→8) — 기존 데이터 보존 마이그레이션. 그 외 버전은 미배포라 wipe OK.
-            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
+            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
             .fallbackToDestructiveMigration()
             .build()
 

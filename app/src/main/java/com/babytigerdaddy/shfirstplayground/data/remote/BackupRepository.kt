@@ -104,6 +104,7 @@ class BackupRepository @Inject constructor(
 
 private fun AccountEntity.toMap() = mapOf(
     "id" to id, "name" to name, "sortOrder" to sortOrder, "createdAt" to createdAt.toString(),
+    "cash" to cash,
 )
 
 private fun Map<String, Any?>.toAccount() = AccountEntity(
@@ -111,6 +112,7 @@ private fun Map<String, Any?>.toAccount() = AccountEntity(
     name = this["name"] as String,
     sortOrder = (this["sortOrder"] as Number).toInt(),
     createdAt = LocalDateTime.parse(this["createdAt"] as String),
+    cash = (this["cash"] as? Number)?.toLong() ?: 0L,  // 옛 백업 호환(현금 없으면 0)
 )
 
 private fun HoldingEntity.toMap() = mapOf(

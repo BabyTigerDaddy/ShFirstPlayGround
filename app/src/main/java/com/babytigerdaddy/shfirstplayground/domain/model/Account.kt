@@ -14,6 +14,8 @@ data class Account(
     /** 계좌 탭 정렬 순서(작을수록 앞). */
     val sortOrder: Int,
     val createdAt: LocalDateTime,
+    /** 현금 잔액(원) — 자산 배분에 '현금 비중'으로 포함. 수익률 계산엔 미포함. */
+    val cash: Long = 0,
 ) {
     companion object {
         /** 기존 데이터가 이어붙는 기본 계좌 id — 마이그레이션과 SQL default가 공유하는 값. */

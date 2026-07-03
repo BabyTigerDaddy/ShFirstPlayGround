@@ -27,4 +27,8 @@ class RoomAccountRepository @Inject constructor(
     override suspend fun delete(id: String) {
         dao.delete(id)
     }
+
+    override suspend fun updateCash(id: String, cash: Long) {
+        dao.updateCash(id, cash)
+    }
 }
