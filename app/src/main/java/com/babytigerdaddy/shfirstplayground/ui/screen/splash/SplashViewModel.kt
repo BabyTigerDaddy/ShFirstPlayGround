@@ -45,6 +45,7 @@ class SplashViewModel @Inject constructor(
     }
 
     private companion object {
-        const val MIN_SHOW_MS = 1200L
+        // 로고 최소 노출 0.5초. 그 뒤론 종목 갱신 끝나는 대로 바로 메인으로 넘어간다.
+        const val MIN_SHOW_MS = 500L
     }
 }
