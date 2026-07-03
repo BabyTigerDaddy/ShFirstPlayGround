@@ -177,7 +177,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
 
     if (showAdd) AddHoldingDialog(viewModel = viewModel, onClose = { showAdd = false })
     sellTarget?.let { h ->
-        SellDialog(holding = h, onConfirm = { viewModel.sell(h); sellTarget = null }, onDismiss = { sellTarget = null })
+        SellDialog(holding = h, onConfirm = { price, qty -> viewModel.sell(h, price, qty); sellTarget = null }, onDismiss = { sellTarget = null })
     }
     editTarget?.let { h ->
         EditHoldingDialog(
@@ -723,8 +723,14 @@ private fun AddHoldingDialog(viewModel: HoldingViewModel, onClose: () -> Unit) {
 }
 
 @Composable
-private fun SellDialog(holding: Holding, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+private fun SellDialog(holding: Holding, onConfirm: (sellPrice: Long, quantity: Int) -> Unit, onDismiss: () -> Unit) {
     val c = LocalHoldingColors.current
+    var sellPriceText by remember { mutableStateOf(holding.currentPrice.toString()) }
+    var qtyText by remember { mutableStateOf(holding.quantity.toString()) }
+    val sellPrice = sellPriceText.filter { it.isDigit() }.toLongOrNull() ?: holding.currentPrice
+    val qty = (qtyText.filter { it.isDigit() }.toIntOrNull() ?: holding.quantity).coerceIn(1, holding.quantity)
+    val realized = (sellPrice - holding.buyPrice) * qty
+    val rate = if (holding.buyPrice > 0) (sellPrice - holding.buyPrice).toDouble() / holding.buyPrice else 0.0
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = c.card,
@@ -732,12 +738,14 @@ private fun SellDialog(holding: Holding, onConfirm: () -> Unit, onDismiss: () ->
         textContentColor = c.sub,
         title = { Text("${holding.ticker} 매도", fontWeight = FontWeight.Bold, color = c.ink) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("현재 평가손익 ${formatWon(holding.evalPnl)} (${signed(holding.returnRate)}%)", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = pnlColor(holding.evalPnl))
-                Text("매도하면 '판 내역'으로 넘어갑니다.", fontSize = 13.sp, color = c.sub)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(sellPriceText, { sellPriceText = it.filter { d -> d.isDigit() }.take(12) }, singleLine = true, label = { Text("매도가") }, suffix = { Text("원") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(qtyText, { qtyText = it.filter { d -> d.isDigit() }.take(9) }, singleLine = true, label = { Text("수량 (보유 ${holding.quantity}주)") }, suffix = { Text("주") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+                Text("실현손익 ${formatWon(realized)}  (${signed(rate)}%)", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = pnlColor(realized))
+                Text("매도하면 '판 내역'으로 넘어가요. 일부만 팔면 나머지는 보유에 남아요.", fontSize = 12.sp, color = c.faint)
             }
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("매도", color = c.point) } },
+        confirmButton = { TextButton(onClick = { onConfirm(sellPrice, qty) }) { Text("매도", color = c.point) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = c.sub) } },
     )
 }
