@@ -169,7 +169,10 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                             item { HoldingTable(summary.holdings, onEdit = { editTarget = it }, onDelete = { delHolding = it }) }
                         }
                     }
-                    1 -> allocationSection(allocation)
+                    1 -> {
+                        item { CashInputCard(accounts = accounts, selectedId = selectedAccountId, onSetCash = viewModel::setCash) }
+                        allocationSection(allocation)
+                    }
                     else -> soldSection(sold, onEdit = { editSold = it }, onDelete = { delSold = it })
                 }
             }
@@ -550,6 +553,44 @@ private fun SoldRow(r: SoldRecord, onEdit: (SoldRecord) -> Unit, onDelete: (Sold
                 Text(formatWon(r.realizedPnl), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = tone)
                 Text("${signed(r.returnRate)}%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = tone)
             }
+        }
+    }
+}
+
+// ---------- 현금 보유 입력 (배분 탭) ----------
+@Composable
+private fun CashInputCard(accounts: List<Account>, selectedId: String, onSetCash: (String, Long) -> Unit) {
+    val c = LocalHoldingColors.current
+    if (selectedId == Account.ALL_ID) {
+        Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(2.dp)) {
+            Text("계좌를 선택하면 그 계좌의 현금을 입력할 수 있어요.", fontSize = 13.sp, color = c.sub, modifier = Modifier.padding(16.dp))
+        }
+        return
+    }
+    val account = accounts.firstOrNull { it.id == selectedId }
+    var cash by remember(selectedId, account?.cash) {
+        mutableStateOf(if ((account?.cash ?: 0L) > 0L) account!!.cash.toString() else "")
+    }
+    Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(2.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("현금 보유", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = c.ink)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = cash,
+                    onValueChange = { cash = it.filter { ch -> ch.isDigit() }.take(13) },
+                    singleLine = true,
+                    label = { Text("현금") },
+                    suffix = { Text("원") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                )
+                FilledTonalButton(
+                    onClick = { onSetCash(selectedId, cash.filter { it.isDigit() }.toLongOrNull() ?: 0L) },
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.filledTonalButtonColors(containerColor = c.pointBg, contentColor = c.point),
+                ) { Text("저장", fontWeight = FontWeight.Bold) }
+            }
+            Text("배분(자산 배분)에 현금 비중으로 떠요. 수익률(보유 탭)엔 안 들어가요.", fontSize = 11.sp, color = c.faint)
         }
     }
 }
