@@ -83,4 +83,6 @@ data class RealizedPoint(
     val soldDate: LocalDate,
     val realizedPnl: Long,
     val cumulative: Long,
+    /** 주간/월간 곡선 x축 라벨(예 "6/30", "1월"). 일별 곡선은 빈 문자열. */
+    val label: String = "",
 )

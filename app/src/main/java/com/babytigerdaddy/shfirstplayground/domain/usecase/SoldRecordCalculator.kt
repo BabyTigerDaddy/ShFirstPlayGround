@@ -13,6 +13,9 @@ data class RealizedByPeriod(
     val monthRealized: Long, val monthCount: Int,
 )
 
+/** 누적 실현손익 곡선을 묶는 단위 — 주간/월간. */
+enum class PnlPeriod { WEEKLY, MONTHLY }
+
 /**
  * 매도 내역 → 집계([SoldHistorySummary]) 순수 변환기.
  */
@@ -34,6 +37,30 @@ object SoldRecordCalculator {
             weekRealized = week.sumOf { it.realizedPnl }, weekCount = week.size,
             monthRealized = month.sumOf { it.realizedPnl }, monthCount = month.size,
         )
+    }
+
+    /**
+     * 매도들을 주(월요일 시작) 또는 월 단위로 묶어 각 기간 실현손익 합과 누적을 낸다.
+     * 판내역 누적 실현손익 곡선(주간/월간 토글)용.
+     */
+    fun periodPoints(records: List<SoldRecord>, period: PnlPeriod): List<RealizedPoint> {
+        if (records.isEmpty()) return emptyList()
+        val keyed = records.groupBy { r ->
+            when (period) {
+                PnlPeriod.WEEKLY -> r.soldDate.with(DayOfWeek.MONDAY)
+                PnlPeriod.MONTHLY -> r.soldDate.withDayOfMonth(1)
+            }
+        }.toSortedMap()
+        var running = 0L
+        return keyed.map { (start, recs) ->
+            val sum = recs.sumOf { it.realizedPnl }
+            running += sum
+            val label = when (period) {
+                PnlPeriod.WEEKLY -> "${start.monthValue}/${start.dayOfMonth}"
+                PnlPeriod.MONTHLY -> "${start.monthValue}월"
+            }
+            RealizedPoint(soldDate = start, realizedPnl = sum, cumulative = running, label = label)
+        }
     }
 
     fun compute(records: List<SoldRecord>): SoldHistorySummary {

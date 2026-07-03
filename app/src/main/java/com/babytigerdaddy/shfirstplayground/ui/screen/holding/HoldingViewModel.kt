@@ -8,6 +8,7 @@ import com.babytigerdaddy.shfirstplayground.domain.model.Holding
 import com.babytigerdaddy.shfirstplayground.domain.model.HoldingSummary
 import com.babytigerdaddy.shfirstplayground.data.repository.StockSeed
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
+import com.babytigerdaddy.shfirstplayground.domain.model.SoldRecord
 import com.babytigerdaddy.shfirstplayground.domain.model.StockMaster
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeMood
 import com.babytigerdaddy.shfirstplayground.domain.repository.AccountRepository
@@ -312,13 +313,16 @@ class HoldingViewModel @Inject constructor(
     }
 
     /**
-     * 매도 — 보유에서 빼고 '매도 내역'으로 이관한다(같은 계좌 유지).
-     *
-     * (mood·note는 화면 호환을 위해 받되 이 앱에선 사용하지 않음.)
+     * 매도 — 판 수량만큼 '매도 내역'으로 이관(같은 계좌 유지).
+     * 매도가·수량 직접 지정(기본=현재가·전량). 일부만 팔면 보유는 남은 수량으로 준다.
      */
-    fun sell(holding: Holding, mood: TradeMood = TradeMood.FLAT, note: String = "") {
+    fun sell(
+        holding: Holding,
+        sellPrice: Long = holding.currentPrice,
+        quantity: Int = holding.quantity,
+    ) {
         viewModelScope.launch {
-            recordSale(holding)
+            recordSale(holding, sellPrice, quantity)
         }
     }
 
@@ -330,5 +334,10 @@ class HoldingViewModel @Inject constructor(
     /** 판 내역 삭제(잘못 기록 제거). */
     fun deleteSoldRecord(id: String) {
         viewModelScope.launch { soldRepository.delete(id) }
+    }
+
+    /** 판내역 매도가·수량 수정(잘못 기록 고침). */
+    fun updateSoldRecord(record: SoldRecord) {
+        viewModelScope.launch { soldRepository.save(record) }
     }
 }
