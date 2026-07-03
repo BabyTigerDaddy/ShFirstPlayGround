@@ -18,10 +18,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ShFirstPlayGround">
 
-        <!-- 애드몹 앱 ID. 지금은 구글 공식 테스트 ID — 아빠 애드몹 계정 앱 ID 나오면 이 값만 교체. -->
+        <!-- 애드몹 앱 ID (아빠 실제 계정 '매기' 앱). -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-7471786568746580~4061707508" />
 
         <activity
             android:name=".MainActivity"
