@@ -1,6 +1,5 @@
 package com.babytigerdaddy.shfirstplayground.ui.ads
 
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,57 +21,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
- * 앱 진입 시 하루 한 번 뜨는 광고 다이얼로그.
+ * 앱 진입(로딩 끝나고 보유 탭) 시 뜨는 광고 다이얼로그.
  *
- * - 광고 영역은 형(소보고)이 만든 [AdmobBanner] 320x50 배너를 그대로 꽂는다.
- * - 하루 한 번만: 마지막으로 띄운 날짜(yyyyMMdd)를 SharedPreferences에 저장하고,
- *   오늘 이미 띄웠으면 스킵. 앱을 껐다 켜도 오늘 안에는 다시 안 뜬다.
- * - 닫기는 우상단 X 하나. "오늘 그만 보기" 같은 옵션은 하루 한 번이라 중복이라 뺐다.
+ * - 광고 영역은 형(소보고)이 만든 [AdmobBanner] 300x250 배너를 그대로 꽂는다.
+ * - 앱 켤 때마다 매번 뜬다(아빠 요청). '하루 한 번' 제한은 뺐다. X로 닫으면 그 실행 동안만
+ *   닫히고, 앱을 다시 켜면 또 뜬다. (출시 때 하루 한 번으로 되돌리려면 show 초기값을
+ *   SharedPreferences 날짜 게이트로 다시 감싸면 된다.)
+ * - 닫기는 우상단 X 하나.
  *
- * MainActivity에서 AppNavigation() 옆에 [EntryAdGate] 한 줄만 부르면 된다.
- */
-private const val PREF_NAME = "entry_ad"
-private const val KEY_LAST_SHOWN = "last_shown_ymd"
-
-private fun today(): String =
-    SimpleDateFormat("yyyyMMdd", Locale.KOREA).format(Date())
-
-private fun shouldShowToday(context: Context): Boolean {
-    val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-    return pref.getString(KEY_LAST_SHOWN, null) != today()
-}
-
-private fun markShownToday(context: Context) {
-    context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        .edit().putString(KEY_LAST_SHOWN, today()).apply()
-}
-
-/**
- * 하루 한 번 게이트. 오늘 아직 안 닫았으면 다이얼로그를 띄운다. 기록은 X로 '닫을 때'만 —
- * 그래야 닫기 전까진 계속 떠 있고, 실제로 닫아야 오늘 카운트가 된다(뜨자마자 기록하면
- * 앱을 죽여도 본 걸로 쳐서, 못 본 채로 그날 내내 안 뜨는 문제가 생김).
+ * AppNavigation의 메인 진입 블록에서 [EntryAdGate] 한 줄만 부르면 된다.
  */
 @Composable
 fun EntryAdGate() {
-    val context = LocalContext.current
-    var show by remember { mutableStateOf(shouldShowToday(context)) }
+    var show by remember { mutableStateOf(true) }
 
     if (show) {
-        EntryAdDialog(onClose = {
-            markShownToday(context)
-            show = false
-        })
+        EntryAdDialog(onClose = { show = false })
     }
 }
 
