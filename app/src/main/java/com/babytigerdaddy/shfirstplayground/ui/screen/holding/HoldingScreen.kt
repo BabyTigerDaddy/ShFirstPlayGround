@@ -372,14 +372,11 @@ private fun HoldingTable(holdings: List<Holding>, onEdit: (Holding) -> Unit, onD
     val c = LocalHoldingColors.current
     Card(shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
         Column {
-            // 헤더 (2단) — 은은한 배경 띠(내용과 구분) + 항목 사이 세로 구분선
+            // 헤더 (2단) — 선 없이 은은한 배경 띠로만 내용과 구분(종목 구분은 아래 가로선)
             Row(Modifier.fillMaxWidth().background(c.line).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1.5f)) { Text("종목명", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = c.sub) }
-                Box(Modifier.size(width = 1.dp, height = 26.dp).background(c.faint.copy(alpha = 0.35f)))
                 TwoLineHead("매입가", "현재가", 1.4f)
-                Box(Modifier.size(width = 1.dp, height = 26.dp).background(c.faint.copy(alpha = 0.35f)))
                 TwoLineHead("수량", "보유일", 1.0f)
-                Box(Modifier.size(width = 1.dp, height = 26.dp).background(c.faint.copy(alpha = 0.35f)))
                 TwoLineHead("평가손익", "수익률", 1.6f)
             }
             holdings.forEachIndexed { idx, h ->
