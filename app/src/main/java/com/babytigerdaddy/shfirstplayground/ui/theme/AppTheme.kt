@@ -25,6 +25,14 @@ enum class ThemeShape { SOFT, SHARP }
 
 enum class ThemePalette { LIGHT, DARK, PASTEL, MONO }
 
+/**
+ * 화이트/다크 모드 선택.
+ * - SYSTEM: 폰 설정을 따라 자동(설치 직후 기본값).
+ * - LIGHT / DARK: 시스템과 무관하게 사용자가 고정(시스템이 다크여도 라이트를 좋아하면 LIGHT).
+ * MainActivity가 이 값으로 실제 팔레트(LIGHT/DARK)를 정한다.
+ */
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
 /** 화면이 참조하는 의미색 묶음. 팔레트마다 한 세트. (손익색은 여기 없음 = 고정 상수) */
 data class HoldingColors(
     val bg: Color,       // 화면 배경

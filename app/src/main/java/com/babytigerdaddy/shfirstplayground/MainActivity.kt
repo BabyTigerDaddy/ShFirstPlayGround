@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.babytigerdaddy.shfirstplayground.ui.navigation.AppNavigation
 import com.babytigerdaddy.shfirstplayground.ui.theme.ShFirstPlayGroundTheme
 import com.babytigerdaddy.shfirstplayground.ui.theme.ThemeController
+import com.babytigerdaddy.shfirstplayground.ui.theme.ThemeMode
 import com.babytigerdaddy.shfirstplayground.ui.theme.ThemePalette
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -49,10 +50,16 @@ class MainActivity : ComponentActivity() {
                     recreate()
                 }
             } else {
-                // 모양은 사용자 선택 유지, 화이트/다크는 시스템 설정 따라 자동 전환.
+                // 모양은 사용자 선택 유지. 화이트/다크는 모드에 따라 —
+                // SYSTEM이면 폰 설정 따라 자동, LIGHT/DARK면 시스템과 무관하게 고정.
                 val settings by themeController.settings.collectAsState()
+                val dark = when (settings.themeMode) {
+                    ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                    ThemeMode.LIGHT -> false
+                    ThemeMode.DARK -> true
+                }
                 val effective = settings.copy(
-                    palette = if (isSystemInDarkTheme()) ThemePalette.DARK else ThemePalette.LIGHT,
+                    palette = if (dark) ThemePalette.DARK else ThemePalette.LIGHT,
                 )
                 ShFirstPlayGroundTheme(settings = effective) {
                     AppNavigation()
