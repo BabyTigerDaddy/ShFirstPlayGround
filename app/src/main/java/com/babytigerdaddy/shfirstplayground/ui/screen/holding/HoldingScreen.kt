@@ -1,5 +1,11 @@
 package com.babytigerdaddy.shfirstplayground.ui.screen.holding
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -46,6 +52,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -72,6 +79,7 @@ import com.babytigerdaddy.shfirstplayground.domain.model.AllocationSlice
 import com.babytigerdaddy.shfirstplayground.domain.model.AssetAllocation
 import com.babytigerdaddy.shfirstplayground.domain.model.DailyPnlPoint
 import com.babytigerdaddy.shfirstplayground.domain.model.Holding
+import com.babytigerdaddy.shfirstplayground.domain.model.MarketIndex
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldRecord
 import com.babytigerdaddy.shfirstplayground.domain.usecase.SoldRecordCalculator
@@ -84,6 +92,7 @@ import com.babytigerdaddy.shfirstplayground.ui.screen.trade.formatWon
 import com.babytigerdaddy.shfirstplayground.ui.screen.trade.pnlColor
 import com.babytigerdaddy.shfirstplayground.ui.screen.settings.SettingsScreen
 import com.babytigerdaddy.shfirstplayground.ui.theme.LocalHoldingColors
+import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -106,6 +115,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     val selectedAccountId by viewModel.selectedAccountId.collectAsStateWithLifecycle()
     val priceRefresh by viewModel.priceRefresh.collectAsStateWithLifecycle()
     val masterSync by viewModel.masterSync.collectAsStateWithLifecycle()
+    val marketIndices by viewModel.marketIndices.collectAsStateWithLifecycle()
     var tab by remember { mutableIntStateOf(0) } // 0=보유 1=배분 2=판내역 3=설정
     var allocMode by remember { mutableIntStateOf(0) } // 배분 탭: 0=종목별 1=업종별
     var showAdd by remember { mutableStateOf(false) }
@@ -135,19 +145,28 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    AccountSelector(
-                        accounts = accounts,
-                        selectedId = selectedAccountId,
-                        onSelect = viewModel::selectAccount,
-                        onAddClick = { showAddAccount = true },
-                        onRenameClick = { showRenameAccount = true },
-                        onDeleteClick = { showDeleteAccount = true },
-                    )
+                    // 계좌 선택 줄 — 왼쪽 계좌 선택, 맨 오른쪽에 새로고침(현재가 불러오기).
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        AccountSelector(
+                            accounts = accounts,
+                            selectedId = selectedAccountId,
+                            onSelect = viewModel::selectAccount,
+                            onAddClick = { showAddAccount = true },
+                            onRenameClick = { showRenameAccount = true },
+                            onDeleteClick = { showDeleteAccount = true },
+                        )
+                        RefreshInline(priceRefresh, onRefresh = { viewModel.refreshPrices() })
+                    }
                 }
                 if ((masterSync.loading && masterSync.firstLoad) || masterSync.updatedCount > 0 || masterSync.failed) {
                     item { MasterSyncBar(masterSync) }
                 }
-                item { RefreshBar(priceRefresh, onRefresh = { viewModel.refreshPrices() }) }
+                // 새로고침이 있던 자리 — 코스피/코스닥 지수를 번갈아(7초, 위로 슬라이드) 보여주는 티커.
+                item { MarketIndexTicker(marketIndices) }
 
                 when (tab) {
                     0 -> {
@@ -276,31 +295,76 @@ private fun MasterSyncBar(state: MasterSyncState) {
 
 // ---------- 시세 갱신 바 ----------
 @Composable
-private fun RefreshBar(state: PriceRefreshState, onRefresh: () -> Unit) {
+private fun RefreshInline(state: PriceRefreshState, onRefresh: () -> Unit) {
+    // 계좌 줄 맨 오른쪽에 얹는 콤팩트 새로고침 — 상태는 짧게, ↻ 버튼.
     val c = LocalHoldingColors.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            when {
-                state.loading -> {
-                    CircularProgressIndicator(modifier = Modifier.size(13.dp), strokeWidth = 2.dp, color = c.sub)
-                    Text("시세 업데이트 중...", fontSize = 12.sp, color = c.sub)
-                }
-                state.failed -> Text("⚠ 갱신 실패 · 마지막 값 유지", fontSize = 12.sp, color = Color(0xFFC8881A))
-                state.lastUpdated != null -> Text(
-                    "방금 갱신 · ${state.lastUpdated.format(DateTimeFormatter.ofPattern("HH:mm"))}" + if (state.lastFetchedCount > 0) " · ${state.lastFetchedCount}종목" else "",
-                    fontSize = 12.sp, color = c.sub,
-                )
-                else -> Text("새로고침으로 현재가 불러오기", fontSize = 12.sp, color = c.faint)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        when {
+            state.loading -> {
+                CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 2.dp, color = c.sub)
+                Text("갱신 중", fontSize = 11.sp, color = c.sub)
             }
+            state.failed -> Text("⚠ 실패", fontSize = 11.sp, color = Color(0xFFC8881A))
+            state.lastUpdated != null -> Text(
+                state.lastUpdated.format(DateTimeFormatter.ofPattern("HH:mm")),
+                fontSize = 11.sp, color = c.faint,
+            )
+            else -> {}
         }
         Text(
             text = "↻ 새로고침",
             fontSize = 12.sp, fontWeight = FontWeight.Bold, color = c.point,
             modifier = Modifier.clip(MaterialTheme.shapes.small).clickable(enabled = !state.loading) { onRefresh() }.padding(horizontal = 8.dp, vertical = 4.dp),
+        )
+    }
+}
+
+// ---------- 코스피/코스닥 지수 티커 (키움 하단처럼 번갈아 세로 슬라이드) ----------
+@Composable
+private fun MarketIndexTicker(indices: List<MarketIndex>) {
+    val c = LocalHoldingColors.current
+    if (indices.isEmpty()) {
+        Text("지수 불러오는 중…", fontSize = 12.sp, color = c.faint)
+        return
+    }
+    var cur by remember { mutableIntStateOf(0) }
+    // 7초마다 다음 지수로. 위로 올라가는 세로 티커.
+    LaunchedEffect(indices.size) {
+        while (true) {
+            delay(7000)
+            cur = (cur + 1) % indices.size
+        }
+    }
+    val m = indices[cur % indices.size]
+    AnimatedContent(
+        targetState = m,
+        transitionSpec = {
+            (slideInVertically { it } + fadeIn()) togetherWith (slideOutVertically { -it } + fadeOut())
+        },
+        label = "marketIndexTicker",
+    ) { idx ->
+        MarketIndexRow(idx)
+    }
+}
+
+@Composable
+private fun MarketIndexRow(m: MarketIndex) {
+    val c = LocalHoldingColors.current
+    val col = if (m.isUp) ProfitRed else LossBlue
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(m.name, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = c.sub)
+        Text(String.format("%.2f", m.value), fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
+        Text(
+            (if (m.isUp) "▲" else "▼") + String.format("%.2f", kotlin.math.abs(m.change)),
+            fontSize = 12.sp, fontWeight = FontWeight.Bold, color = col,
+        )
+        Text(
+            (if (m.changeRate >= 0) "+" else "") + String.format("%.2f", m.changeRate) + "%",
+            fontSize = 12.sp, fontWeight = FontWeight.Bold, color = col,
         )
     }
 }
