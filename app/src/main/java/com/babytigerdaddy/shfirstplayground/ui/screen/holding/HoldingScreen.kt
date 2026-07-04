@@ -107,6 +107,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     val priceRefresh by viewModel.priceRefresh.collectAsStateWithLifecycle()
     val masterSync by viewModel.masterSync.collectAsStateWithLifecycle()
     var tab by remember { mutableIntStateOf(0) } // 0=보유 1=배분 2=판내역 3=설정
+    var allocMode by remember { mutableIntStateOf(0) } // 배분 탭: 0=종목별 1=업종별
     var showAdd by remember { mutableStateOf(false) }
     var sellTarget by remember { mutableStateOf<Holding?>(null) }
     var editTarget by remember { mutableStateOf<Holding?>(null) }
@@ -174,7 +175,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                     }
                     1 -> {
                         item { CashInputCard(accounts = accounts, selectedId = selectedAccountId, onSetCash = viewModel::setCash) }
-                        allocationSection(allocation)
+                        allocationSection(allocation, allocMode) { allocMode = it }
                         if (summary.holdings.isNotEmpty()) pageBannerItem() // 배분 내용 맨 아래
                     }
                     else -> {
@@ -635,7 +636,11 @@ private val AllocColors = listOf(
     Color(0xFF3B9E9E), Color(0xFF9E6B3B), Color(0xFF4B7AC4), Color(0xFF9E3B5C), Color(0xFF6B9E4B),
 )
 
-private fun androidx.compose.foundation.lazy.LazyListScope.allocationSection(alloc: AssetAllocation) {
+private fun androidx.compose.foundation.lazy.LazyListScope.allocationSection(
+    alloc: AssetAllocation,
+    mode: Int,
+    onModeChange: (Int) -> Unit,
+) {
     if (alloc.slices.isEmpty()) {
         item {
             val c = LocalHoldingColors.current
@@ -643,11 +648,17 @@ private fun androidx.compose.foundation.lazy.LazyListScope.allocationSection(all
         }
         return
     }
+    // 종목별(0) ↔ 업종별(1) 전환. 업종별은 종목들을 반도체/게임/바이오 등 큰 섹터로 묶은 것.
+    val sectorMode = mode == 1
+    val curSlices = if (sectorMode) alloc.sectorSlices else alloc.slices
+
+    item { AllocModeToggle(mode = mode, onSelect = onModeChange) }
+
     item {
         val c = LocalHoldingColors.current
         Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = c.card), elevation = CardDefaults.cardElevation(3.dp)) {
             Box(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
-                AllocationDonut(alloc.slices, Modifier.size(212.dp))
+                AllocationDonut(curSlices, Modifier.size(212.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("총 평가금액", fontSize = 12.sp, color = c.sub)
                     Text(comma(alloc.totalEval) + "원", fontSize = 21.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
@@ -655,7 +666,8 @@ private fun androidx.compose.foundation.lazy.LazyListScope.allocationSection(all
             }
         }
     }
-    if (alloc.concentrationTicker != null) {
+    // 집중 종목 경고(몰빵 경계)는 종목 기준이라 종목별에서만. 업종별에선 숨긴다.
+    if (!sectorMode && alloc.concentrationTicker != null) {
         item {
             val c = LocalHoldingColors.current
             Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = ProfitRed.copy(alpha = 0.10f))) {
@@ -671,9 +683,40 @@ private fun androidx.compose.foundation.lazy.LazyListScope.allocationSection(all
     }
     item {
         val c = LocalHoldingColors.current
-        Text("종목별 비중", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.ink, modifier = Modifier.padding(top = 2.dp))
+        Text(if (sectorMode) "업종별 비중" else "종목별 비중", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.ink, modifier = Modifier.padding(top = 2.dp))
     }
-    itemsIndexed(alloc.slices) { i, s -> AllocationLegendRow(i, s) }
+    itemsIndexed(curSlices) { i, s -> AllocationLegendRow(i, s) }
+}
+
+// ---------- 배분 탭 종목별 ↔ 업종별 전환 토글 ----------
+@Composable
+private fun AllocModeToggle(mode: Int, onSelect: (Int) -> Unit) {
+    val c = LocalHoldingColors.current
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .background(c.card)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        AllocModeSeg("종목별", mode == 0, Modifier.weight(1f)) { onSelect(0) }
+        AllocModeSeg("업종별", mode == 1, Modifier.weight(1f)) { onSelect(1) }
+    }
+}
+
+@Composable
+private fun AllocModeSeg(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val c = LocalHoldingColors.current
+    Box(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.small)
+            .background(if (selected) c.point else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(vertical = 9.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (selected) Color.White else c.sub)
+    }
 }
 
 @Composable
