@@ -113,6 +113,10 @@ class HoldingViewModel @Inject constructor(
     private val _marketIndices = MutableStateFlow<List<MarketIndex>>(emptyList())
     val marketIndices: StateFlow<List<MarketIndex>> = _marketIndices.asStateFlow()
 
+    /** 원/달러 환율 — 티커 오른쪽 상시 표시. null이면 아직 못 받음. */
+    private val _exchangeRate = MutableStateFlow<MarketIndex?>(null)
+    val exchangeRate: StateFlow<MarketIndex?> = _exchangeRate.asStateFlow()
+
     /** 종목 목록 동기화 상태 — 첫 진입 '준비 중' / 갱신된 날 '갱신 중'용. */
     private val _masterSync = MutableStateFlow(MasterSyncState())
     val masterSync: StateFlow<MasterSyncState> = _masterSync.asStateFlow()
@@ -143,6 +147,8 @@ class HoldingViewModel @Inject constructor(
                 runCatching { marketIndexSource.fetch() }.getOrNull()
                     ?.takeIf { it.isNotEmpty() }
                     ?.let { _marketIndices.value = it }
+                runCatching { marketIndexSource.fetchUsdKrw() }.getOrNull()
+                    ?.let { _exchangeRate.value = it }
                 delay(10 * 60 * 1000L)
             }
         }

@@ -27,6 +27,11 @@ class YahooMarketIndexSource @Inject constructor() : MarketIndexSource {
         )
     }
 
+    // 원/달러 환율(KRW=X). 지수와 같은 chart 엔드포인트라 파싱 그대로 재사용.
+    override suspend fun fetchUsdKrw(): MarketIndex? = withContext(Dispatchers.IO) {
+        fetchOne("원/달러", "KRW=X")
+    }
+
     private fun fetchOne(name: String, symbol: String): MarketIndex? {
         var conn: HttpURLConnection? = null
         return try {
