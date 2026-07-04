@@ -13,4 +13,9 @@ data class StockMaster(
     val name: String,
     /** 시장 — "KOSPI" / "KOSDAQ". 시세 API 시장 구분용. */
     val market: String,
+    /**
+     * 업종(큰 섹터) — 반도체/게임/바이오·제약 등. 자산 배분을 업종별로 묶는 데 쓴다.
+     * 원격 종목 목록에서 채워지고, 오프라인 시드나 구버전 데이터는 "기타".
+     */
+    val sector: String = "기타",
 )

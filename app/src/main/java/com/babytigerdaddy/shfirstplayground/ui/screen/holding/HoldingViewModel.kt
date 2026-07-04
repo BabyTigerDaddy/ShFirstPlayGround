@@ -221,7 +221,10 @@ class HoldingViewModel @Inject constructor(
         combine(accountHoldings, accounts, _selectedAccountId) { holdings, accts, selId ->
             val cash = if (selId == Account.ALL_ID) accts.sumOf { it.cash }
             else accts.firstOrNull { it.id == selId }?.cash ?: 0L
-            AllocationCalculator.compute(holdings, cash)
+            // 종목코드 → 업종(큰 섹터) 조회 — 배분을 업종별로도 묶기 위해. 코드 없으면 '기타'.
+            val sectorByCode = holdings.filter { it.code.isNotBlank() }
+                .associate { it.code to (stockMasterRepository.getByCode(it.code)?.sector ?: "기타") }
+            AllocationCalculator.compute(holdings, cash) { h -> sectorByCode[h.code] ?: "기타" }
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssetAllocation.EMPTY)
 

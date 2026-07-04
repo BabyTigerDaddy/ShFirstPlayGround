@@ -10,11 +10,12 @@ data class StockMasterEntity(
     @PrimaryKey val code: String,
     val name: String,
     val market: String,
+    val sector: String = "기타",
 ) {
-    fun toDomain(): StockMaster = StockMaster(code = code, name = name, market = market)
+    fun toDomain(): StockMaster = StockMaster(code = code, name = name, market = market, sector = sector)
 
     companion object {
         fun fromDomain(s: StockMaster): StockMasterEntity =
-            StockMasterEntity(code = s.code, name = s.name, market = s.market)
+            StockMasterEntity(code = s.code, name = s.name, market = s.market, sector = s.sector)
     }
 }

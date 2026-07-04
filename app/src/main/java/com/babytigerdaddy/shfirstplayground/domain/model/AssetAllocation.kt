@@ -11,13 +11,15 @@ data class AssetAllocation(
     val totalEval: Long,
     /** 종목별 조각(비중 내림차순). */
     val slices: List<AllocationSlice>,
+    /** 업종별 조각(비중 내림차순) — 종목들을 반도체/게임/바이오 등으로 묶은 것. ticker 자리에 업종명. */
+    val sectorSlices: List<AllocationSlice>,
     /** 제일 큰 비중 종목명(없으면 null). */
     val concentrationTicker: String?,
     /** 그 종목의 비중(0~1). */
     val concentrationRatio: Double,
 ) {
     companion object {
-        val EMPTY = AssetAllocation(0, emptyList(), null, 0.0)
+        val EMPTY = AssetAllocation(0, emptyList(), emptyList(), null, 0.0)
     }
 }
 

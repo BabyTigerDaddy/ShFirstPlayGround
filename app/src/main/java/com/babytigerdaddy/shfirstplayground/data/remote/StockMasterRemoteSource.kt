@@ -52,8 +52,9 @@ class StockMasterRemoteSource @Inject constructor() {
             val code = o.optString("code")
             val name = o.optString("name")
             val market = o.optString("market")
+            val sector = o.optString("sector").ifBlank { "기타" }
             if (code.length == 6 && name.isNotBlank()) {
-                stocks.add(StockMaster(code = code, name = name, market = market))
+                stocks.add(StockMaster(code = code, name = name, market = market, sector = sector))
             }
         }
         return if (stocks.isEmpty()) null else RemoteStockMaster(version, stocks)

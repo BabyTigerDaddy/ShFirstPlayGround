@@ -80,3 +80,13 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
         )
     }
 }
+
+// 종목 마스터에 업종(sector) 컬럼 추가 — 자산 배분 업종별 묶기용. 기존 행은 '기타'
+// (다음 진입에 원격 목록이 정확한 업종으로 덮어씀).
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE `stock_master` ADD COLUMN `sector` TEXT NOT NULL DEFAULT '기타'",
+        )
+    }
+}

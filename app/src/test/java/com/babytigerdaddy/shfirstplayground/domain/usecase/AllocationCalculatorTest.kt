@@ -59,4 +59,25 @@ class AllocationCalculatorTest {
         assertEquals(5_000L, samsung.evalAmount)
         assertEquals(0.5, samsung.ratio, 1e-9)
     }
+
+    @Test
+    fun `업종별 슬라이스 - sectorOf로 큰 섹터끼리 묶어 합산`() {
+        val sector = mapOf("A" to "반도체", "B" to "반도체", "C" to "게임")
+        val a = AllocationCalculator.compute(
+            listOf(
+                holding("A", current = 100, qty = 40),  // 4,000 → 반도체
+                holding("B", current = 100, qty = 20),  // 2,000 → 반도체
+                holding("C", current = 100, qty = 40),  // 4,000 → 게임
+            ),
+            sectorOf = { h -> sector[h.ticker] ?: "기타" },
+        )
+        // 종목별은 3개 그대로, 업종별은 2개(반도체 6,000 / 게임 4,000)로 묶임
+        assertEquals(3, a.slices.size)
+        assertEquals(2, a.sectorSlices.size)
+        val semi = a.sectorSlices.first { it.ticker == "반도체" }
+        assertEquals(6_000L, semi.evalAmount)
+        assertEquals(0.6, semi.ratio, 1e-9)
+        // 비중 내림차순 = 반도체(0.6) 먼저
+        assertEquals("반도체", a.sectorSlices[0].ticker)
+    }
 }

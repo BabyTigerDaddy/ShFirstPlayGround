@@ -19,6 +19,7 @@ import androidx.room.TypeConverters
  * v8 → v9: StockMasterEntity(종목 마스터) 추가 — 이름→코드 검색용([MIGRATION_8_9], 데이터 보존).
  * v9 → v10: sold_record에 realizedOverride(실현손익 직접 보정) 컬럼([MIGRATION_9_10], 데이터 보존).
  * v10 → v11: account에 cash(현금 잔액) 컬럼 — 자산 배분 현금 비중용([MIGRATION_10_11], 데이터 보존).
+ * v11 → v12: stock_master에 sector(업종) 컬럼 — 자산 배분 업종별 묶기용([MIGRATION_11_12], 데이터 보존).
  */
 @Database(
     entities = [
@@ -31,7 +32,7 @@ import androidx.room.TypeConverters
         AccountEntity::class,
         StockMasterEntity::class,
     ],
-    version = 11,
+    version = 12,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
