@@ -352,19 +352,21 @@ private fun MarketIndexRow(m: MarketIndex, rate: Boolean = false) {
     val c = LocalHoldingColors.current
     val col = if (m.isUp) ProfitRed else LossBlue
     // 한 번에 하나만 뜨므로 등락폭·화살표까지 다 보여준다(축약 원복).
-    // 표처럼 양끝으로 딱 가르지 않고, 이름·값·등락을 한 덩어리로 화면 가운데에 흐르듯 배치(UX).
+    // 좌우 끝까지 쓰되 표처럼 균등분할하지 않는다 — 이름은 왼쪽 끝, 값+등락은 한 덩어리로 오른쪽 끝(SpaceBetween).
     val valueText = if (rate) String.format("%,.1f", m.value) else String.format("%,.2f", m.value)
     val changeText = (if (m.isUp) "▲" else "▼") + String.format("%,.2f", kotlin.math.abs(m.change))
     val rateText = (if (m.changeRate >= 0) "+" else "") + String.format("%.2f", m.changeRate) + "%"
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(m.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.sub, maxLines = 1)
-        Text(valueText, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = c.ink, maxLines = 1)
-        Text(changeText, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = col, maxLines = 1)
-        Text(rateText, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = col, maxLines = 1)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(valueText, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = c.ink, maxLines = 1)
+            Text(changeText, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = col, maxLines = 1)
+            Text(rateText, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = col, maxLines = 1)
+        }
     }
 }
 
