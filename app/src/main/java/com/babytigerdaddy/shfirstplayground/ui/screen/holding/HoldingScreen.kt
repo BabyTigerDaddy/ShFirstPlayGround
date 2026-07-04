@@ -629,8 +629,10 @@ private fun CashInputCard(accounts: List<Account>, selectedId: String, onSetCash
 private val AllocColors = listOf(
     Color(0xFF2E9E88), Color(0xFF3B6FB0), Color(0xFFD98C2B), Color(0xFF8A5CC0),
     Color(0xFFCB5B7A), Color(0xFF4B9E5F), Color(0xFF5C6B7A), Color(0xFF2FA6C4),
-    // 섹터(업종별) 도넛은 큰 섹터가 열 개 넘어서, 8색이면 색이 겹친다. 구분되게 5색 더.
+    // 섹터(업종별) 도넛은 큰 섹터가 열몇 개(예외 매핑 포함 18개 안팎)라, 8색이면 색이 겹친다.
+    // 섹터가 서로 다른 색으로 구분되게 총 18색으로 채운다.
     Color(0xFFB0843B), Color(0xFF7A9E3B), Color(0xFFC44B4B), Color(0xFF6B4BC0), Color(0xFFB84B9E),
+    Color(0xFF3B9E9E), Color(0xFF9E6B3B), Color(0xFF4B7AC4), Color(0xFF9E3B5C), Color(0xFF6B9E4B),
 )
 
 private fun androidx.compose.foundation.lazy.LazyListScope.allocationSection(alloc: AssetAllocation) {
