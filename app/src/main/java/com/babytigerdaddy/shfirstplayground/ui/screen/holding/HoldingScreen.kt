@@ -361,22 +361,18 @@ private fun MarketIndexTicker(indices: List<MarketIndex>) {
 private fun MarketIndexRow(m: MarketIndex, rate: Boolean = false) {
     val c = LocalHoldingColors.current
     val col = if (m.isUp) ProfitRed else LossBlue
-    // 환율은 콤마+소수 한 자리(1,530.5), 지수는 소수 두 자리(2601.23).
-    val valueText = if (rate) String.format("%,.1f", m.value) else String.format("%.2f", m.value)
+    // 한 줄에 왼쪽 지수 + 오른쪽 환율이 다 들어가게 축약 — 등락폭·화살표 빼고 '이름 값 등락률%'만.
+    // 방향은 색(빨강/파랑)+부호(+/-)로 충분히 드러난다. 이름도 짧게(원/달러→달러), 값은 정수 콤마.
+    val name = if (rate) "달러" else m.name
+    val valueText = String.format("%,.0f", m.value)
+    val rateText = String.format("%+.1f%%", m.changeRate)
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Text(m.name, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = c.sub)
-        Text(valueText, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
-        Text(
-            (if (m.isUp) "▲" else "▼") + String.format("%.2f", kotlin.math.abs(m.change)),
-            fontSize = 12.sp, fontWeight = FontWeight.Bold, color = col,
-        )
-        Text(
-            (if (m.changeRate >= 0) "+" else "") + String.format("%.2f", m.changeRate) + "%",
-            fontSize = 12.sp, fontWeight = FontWeight.Bold, color = col,
-        )
+        Text(name, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = c.sub, maxLines = 1)
+        Text(valueText, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = c.ink, maxLines = 1)
+        Text(rateText, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = col, maxLines = 1)
     }
 }
 
