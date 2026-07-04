@@ -20,16 +20,14 @@ import javax.inject.Singleton
 @Singleton
 class YahooMarketIndexSource @Inject constructor() : MarketIndexSource {
 
+    // 코스피·코스닥 + 원/달러 환율까지 한 묶음 — 티커에서 셋이 번갈아 돈다.
+    // 환율(KRW=X)도 지수와 같은 chart 엔드포인트라 파싱 그대로 재사용.
     override suspend fun fetch(): List<MarketIndex> = withContext(Dispatchers.IO) {
         listOfNotNull(
             fetchOne("코스피", "%5EKS11"),
             fetchOne("코스닥", "%5EKQ11"),
+            fetchOne("원/달러", "KRW=X"),
         )
-    }
-
-    // 원/달러 환율(KRW=X). 지수와 같은 chart 엔드포인트라 파싱 그대로 재사용.
-    override suspend fun fetchUsdKrw(): MarketIndex? = withContext(Dispatchers.IO) {
-        fetchOne("원/달러", "KRW=X")
     }
 
     private fun fetchOne(name: String, symbol: String): MarketIndex? {
