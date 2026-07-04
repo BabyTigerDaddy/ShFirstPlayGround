@@ -6,6 +6,7 @@ import com.babytigerdaddy.shfirstplayground.data.repository.RoomHappyLogReposito
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomHoldingRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomMonthlyGoalRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomSoldRecordRepository
+import com.babytigerdaddy.shfirstplayground.data.remote.YahooMarketIndexSource
 import com.babytigerdaddy.shfirstplayground.data.remote.YahooStockPriceSource
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomStockMasterRepository
 import com.babytigerdaddy.shfirstplayground.data.repository.RoomTradeJournalRepository
@@ -15,6 +16,7 @@ import com.babytigerdaddy.shfirstplayground.domain.repository.HappyLogRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.MonthlyGoalRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.SoldRecordRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.MarketIndexSource
 import com.babytigerdaddy.shfirstplayground.domain.repository.StockMasterRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.StockPriceSource
 import com.babytigerdaddy.shfirstplayground.domain.repository.TradeJournalRepository
@@ -82,4 +84,10 @@ abstract class AppModule {
     abstract fun bindStockPriceSource(
         impl: YahooStockPriceSource,
     ): StockPriceSource
+
+    @Binds
+    @Singleton
+    abstract fun bindMarketIndexSource(
+        impl: YahooMarketIndexSource,
+    ): MarketIndexSource
 }

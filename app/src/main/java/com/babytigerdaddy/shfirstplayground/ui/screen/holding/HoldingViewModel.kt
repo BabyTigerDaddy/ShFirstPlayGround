@@ -6,6 +6,7 @@ import com.babytigerdaddy.shfirstplayground.domain.model.Account
 import com.babytigerdaddy.shfirstplayground.domain.model.AssetAllocation
 import com.babytigerdaddy.shfirstplayground.domain.model.Holding
 import com.babytigerdaddy.shfirstplayground.domain.model.HoldingSummary
+import com.babytigerdaddy.shfirstplayground.domain.model.MarketIndex
 import com.babytigerdaddy.shfirstplayground.data.repository.StockSeed
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldHistorySummary
 import com.babytigerdaddy.shfirstplayground.domain.model.SoldRecord
@@ -13,6 +14,7 @@ import com.babytigerdaddy.shfirstplayground.domain.model.StockMaster
 import com.babytigerdaddy.shfirstplayground.domain.model.TradeMood
 import com.babytigerdaddy.shfirstplayground.domain.repository.AccountRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.HoldingRepository
+import com.babytigerdaddy.shfirstplayground.domain.repository.MarketIndexSource
 import com.babytigerdaddy.shfirstplayground.domain.repository.SoldRecordRepository
 import com.babytigerdaddy.shfirstplayground.domain.repository.StockMasterRepository
 import com.babytigerdaddy.shfirstplayground.domain.usecase.AllocationCalculator
@@ -32,6 +34,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -84,6 +87,7 @@ class HoldingViewModel @Inject constructor(
     private val recordSale: RecordSaleUseCase,
     private val refreshPricesUseCase: RefreshPricesUseCase,
     private val syncStockMasterUseCase: SyncStockMasterUseCase,
+    private val marketIndexSource: MarketIndexSource,
 ) : ViewModel() {
 
     private val _input = MutableStateFlow(HoldingInputUiState())
@@ -104,6 +108,10 @@ class HoldingViewModel @Inject constructor(
     /** 시세 자동 갱신 상태 — 상단 '업데이트 중 / 방금 갱신 HH:mm'용. */
     private val _priceRefresh = MutableStateFlow(PriceRefreshState())
     val priceRefresh: StateFlow<PriceRefreshState> = _priceRefresh.asStateFlow()
+
+    /** 코스피·코스닥 지수 — 상단 티커에 번갈아 표시. 10분마다 갱신(비면 아직 못 받은 것). */
+    private val _marketIndices = MutableStateFlow<List<MarketIndex>>(emptyList())
+    val marketIndices: StateFlow<List<MarketIndex>> = _marketIndices.asStateFlow()
 
     /** 종목 목록 동기화 상태 — 첫 진입 '준비 중' / 갱신된 날 '갱신 중'용. */
     private val _masterSync = MutableStateFlow(MasterSyncState())
@@ -128,6 +136,16 @@ class HoldingViewModel @Inject constructor(
             }
         }
         // 종목 목록 동기화·시세 갱신은 로딩(스플래시)에서 한 번만 한다 — 보유 화면 진입 때 또 돌면 중복.
+
+        // 코스피·코스닥 지수 10분마다 갱신 — 상단 티커용. 앱 켜있는 동안 주기적으로.
+        viewModelScope.launch {
+            while (true) {
+                runCatching { marketIndexSource.fetch() }.getOrNull()
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { _marketIndices.value = it }
+                delay(10 * 60 * 1000L)
+            }
+        }
     }
 
     /**
