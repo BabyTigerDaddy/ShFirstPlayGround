@@ -116,6 +116,7 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
     val priceRefresh by viewModel.priceRefresh.collectAsStateWithLifecycle()
     val masterSync by viewModel.masterSync.collectAsStateWithLifecycle()
     val marketIndices by viewModel.marketIndices.collectAsStateWithLifecycle()
+    val exchangeRate by viewModel.exchangeRate.collectAsStateWithLifecycle()
     var tab by remember { mutableIntStateOf(0) } // 0=보유 1=배분 2=판내역 3=설정
     var allocMode by remember { mutableIntStateOf(0) } // 배분 탭: 0=종목별 1=업종별
     var showAdd by remember { mutableStateOf(false) }
@@ -165,8 +166,17 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                 if ((masterSync.loading && masterSync.firstLoad) || masterSync.updatedCount > 0 || masterSync.failed) {
                     item { MasterSyncBar(masterSync) }
                 }
-                // 새로고침이 있던 자리 — 코스피/코스닥 지수를 번갈아(7초, 위로 슬라이드) 보여주는 티커.
-                item { MarketIndexTicker(marketIndices) }
+                // 새로고침이 있던 자리 — 왼쪽 코스피/코스닥 번갈아 티커, 오른쪽 원/달러 환율 상시.
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        MarketIndexTicker(marketIndices)
+                        exchangeRate?.let { MarketIndexRow(it, rate = true) }
+                    }
+                }
 
                 when (tab) {
                     0 -> {
@@ -348,16 +358,17 @@ private fun MarketIndexTicker(indices: List<MarketIndex>) {
 }
 
 @Composable
-private fun MarketIndexRow(m: MarketIndex) {
+private fun MarketIndexRow(m: MarketIndex, rate: Boolean = false) {
     val c = LocalHoldingColors.current
     val col = if (m.isUp) ProfitRed else LossBlue
+    // 환율은 콤마+소수 한 자리(1,530.5), 지수는 소수 두 자리(2601.23).
+    val valueText = if (rate) String.format("%,.1f", m.value) else String.format("%.2f", m.value)
     Row(
-        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(m.name, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = c.sub)
-        Text(String.format("%.2f", m.value), fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
+        Text(valueText, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = c.ink)
         Text(
             (if (m.isUp) "▲" else "▼") + String.format("%.2f", kotlin.math.abs(m.change)),
             fontSize = 12.sp, fontWeight = FontWeight.Bold, color = col,
