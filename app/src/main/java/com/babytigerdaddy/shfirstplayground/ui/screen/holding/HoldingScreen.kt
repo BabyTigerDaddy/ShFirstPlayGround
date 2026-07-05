@@ -145,28 +145,21 @@ fun HoldingScreen(viewModel: HoldingViewModel = hiltViewModel()) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    // 계좌 선택 줄 — 왼쪽 계좌 선택, 맨 오른쪽에 새로고침(현재가 불러오기).
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        AccountSelector(
-                            accounts = accounts,
-                            selectedId = selectedAccountId,
-                            onSelect = viewModel::selectAccount,
-                            onAddClick = { showAddAccount = true },
-                            onRenameClick = { showRenameAccount = true },
-                            onDeleteClick = { showDeleteAccount = true },
-                        )
-                        RefreshInline(priceRefresh, onRefresh = { viewModel.refreshPrices() })
-                    }
+                    // 계좌 선택 줄 — 왼쪽 계좌 선택만. 새로고침은 아래 지수 티커 줄 오른쪽 끝으로 내렸다.
+                    AccountSelector(
+                        accounts = accounts,
+                        selectedId = selectedAccountId,
+                        onSelect = viewModel::selectAccount,
+                        onAddClick = { showAddAccount = true },
+                        onRenameClick = { showRenameAccount = true },
+                        onDeleteClick = { showDeleteAccount = true },
+                    )
                 }
                 if ((masterSync.loading && masterSync.firstLoad) || masterSync.updatedCount > 0 || masterSync.failed) {
                     item { MasterSyncBar(masterSync) }
                 }
-                // 새로고침이 있던 자리 — 코스피/코스닥/원달러 셋이 7초마다 번갈아(위로 슬라이드).
-                item { MarketIndexTicker(marketIndices) }
+                // 계좌 줄 아래 — 왼쪽부터 코스피/코스닥/원달러가 7초마다 번갈아 나열, 오른쪽 끝에 새로고침.
+                item { MarketIndexTicker(marketIndices, priceRefresh, onRefresh = { viewModel.refreshPrices() }) }
 
                 when (tab) {
                     0 -> {
@@ -321,29 +314,41 @@ private fun RefreshInline(state: PriceRefreshState, onRefresh: () -> Unit) {
 
 // ---------- 코스피/코스닥 지수 티커 (키움 하단처럼 번갈아 세로 슬라이드) ----------
 @Composable
-private fun MarketIndexTicker(indices: List<MarketIndex>) {
+private fun MarketIndexTicker(
+    indices: List<MarketIndex>,
+    refresh: PriceRefreshState,
+    onRefresh: () -> Unit,
+) {
     val c = LocalHoldingColors.current
-    if (indices.isEmpty()) {
-        Text("지수 불러오는 중…", fontSize = 12.sp, color = c.faint)
-        return
-    }
-    var cur by remember { mutableIntStateOf(0) }
-    // 7초마다 다음 지수로. 위로 올라가는 세로 티커.
-    LaunchedEffect(indices.size) {
-        while (true) {
-            delay(7000)
-            cur = (cur + 1) % indices.size
+    // 왼쪽: 지수 티커(왼쪽부터 차례로 나열), 오른쪽 끝: 새로고침(계좌 줄에서 한 칸 내려옴).
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        if (indices.isEmpty()) {
+            Text("지수 불러오는 중…", fontSize = 12.sp, color = c.faint)
+        } else {
+            var cur by remember { mutableIntStateOf(0) }
+            // 7초마다 다음 지수로. 위로 올라가는 세로 티커.
+            LaunchedEffect(indices.size) {
+                while (true) {
+                    delay(7000)
+                    cur = (cur + 1) % indices.size
+                }
+            }
+            val m = indices[cur % indices.size]
+            AnimatedContent(
+                targetState = m,
+                transitionSpec = {
+                    (slideInVertically { it } + fadeIn()) togetherWith (slideOutVertically { -it } + fadeOut())
+                },
+                label = "marketIndexTicker",
+            ) { idx ->
+                MarketIndexRow(idx, rate = idx.name.contains("달러"))
+            }
         }
-    }
-    val m = indices[cur % indices.size]
-    AnimatedContent(
-        targetState = m,
-        transitionSpec = {
-            (slideInVertically { it } + fadeIn()) togetherWith (slideOutVertically { -it } + fadeOut())
-        },
-        label = "marketIndexTicker",
-    ) { idx ->
-        MarketIndexRow(idx, rate = idx.name.contains("달러"))
+        RefreshInline(refresh, onRefresh)
     }
 }
 
@@ -351,22 +356,18 @@ private fun MarketIndexTicker(indices: List<MarketIndex>) {
 private fun MarketIndexRow(m: MarketIndex, rate: Boolean = false) {
     val c = LocalHoldingColors.current
     val col = if (m.isUp) ProfitRed else LossBlue
-    // 한 번에 하나만 뜨므로 등락폭·화살표까지 다 보여준다(축약 원복).
-    // 좌우 끝까지 쓰되 표처럼 균등분할하지 않는다 — 이름은 왼쪽 끝, 값+등락은 한 덩어리로 오른쪽 끝(SpaceBetween).
+    // 한 번에 하나만 뜨므로 등락폭·화살표까지 다 보여준다. 왼쪽부터 이름·값·등락폭·등락률 차례로 나열.
     val valueText = if (rate) String.format("%,.1f", m.value) else String.format("%,.2f", m.value)
     val changeText = (if (m.isUp) "▲" else "▼") + String.format("%,.2f", kotlin.math.abs(m.change))
     val rateText = (if (m.changeRate >= 0) "+" else "") + String.format("%.2f", m.changeRate) + "%"
     Row(
-        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(m.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.sub, maxLines = 1)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(valueText, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = c.ink, maxLines = 1)
-            Text(changeText, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = col, maxLines = 1)
-            Text(rateText, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = col, maxLines = 1)
-        }
+        Text(valueText, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = c.ink, maxLines = 1)
+        Text(changeText, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = col, maxLines = 1)
+        Text(rateText, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = col, maxLines = 1)
     }
 }
 
