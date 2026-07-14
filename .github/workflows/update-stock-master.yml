@@ -26,6 +26,8 @@ jobs:
 
       - name: Build stock master
         run: python scripts/build_stock_master.py
+        env:
+          KRX_API_KEY: ${{ secrets.KRX_API_KEY }}   # ETF 목록 갱신용(공공데이터 키). 없으면 스크립트가 기존 ETF 유지.
 
       - name: Commit if changed
         run: |
