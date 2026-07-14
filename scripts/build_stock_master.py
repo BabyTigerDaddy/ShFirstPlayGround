@@ -164,12 +164,24 @@ def fetch_etfs():
 
 
 def main():
+    old = {}
+    if os.path.exists(OUT):
+        with open(OUT, encoding="utf-8") as f:
+            old = json.load(f)
+
     merged = {}
     for mtype, market in MARKETS:
         for s in parse(fetch(mtype), market):
             merged[s["code"]] = s
     # ETF 추가 — 회사와 코드가 겹치지 않게 이미 있으면 회사 우선(setdefault).
-    for etf in fetch_etfs():
+    etfs = fetch_etfs()
+    if not etfs:
+        # 키가 없거나 ETF API가 실패한 날엔 새로 못 받는다 → 기존 파일의 ETF를 그대로 보존한다.
+        # (안전장치: 키 미설정 상태로 Action이 돌아도 이미 들어간 ETF가 날아가지 않게.)
+        etfs = [s for s in old.get("stocks", []) if s.get("sector") == ETF_SECTOR]
+        if etfs:
+            print(f"ETF API 미사용 - 기존 {len(etfs)}개 유지")
+    for etf in etfs:
         merged.setdefault(etf["code"], etf)
     stocks = sorted(merged.values(), key=lambda x: x["name"])
 
@@ -177,10 +189,6 @@ def main():
         print(f"ABORT: too few stocks ({len(stocks)}) - keep existing")
         sys.exit(1)
 
-    old = {}
-    if os.path.exists(OUT):
-        with open(OUT, encoding="utf-8") as f:
-            old = json.load(f)
     if old.get("stocks") == stocks:
         print("no change - skip")
         return
